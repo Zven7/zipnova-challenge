@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Reglas y decisiones para el agente que desarrolla este proyecto. Complementan el enunciado de la prueba técnica (`CHALLENGE.md`). Si algo de este archivo contradice al enunciado, avisame antes de elegir.
+Reglas y decisiones para el agente que desarrolla este proyecto. Complementan el enunciado de la prueba técnica (`CHALLENGE.md`). Si algo de este archivo contradice al enunciado o al UI Kit de Figma que enlaza, **prevalece `CHALLENGE.md`**: seguí el enunciado y anotá la diferencia en el README.
 
 ## 0. Forma de trabajo
 
@@ -33,9 +33,9 @@ El objetivo es resolver el flujo principal de forma **clara y mantenible**, no c
 | Estilos     | Tailwind CSS. Tokens del design system en `tailwind.config` (colores, radios, tipografía, sombras) |
 | Estado      | Redux Toolkit (`createSlice`, `createEntityAdapter`, selectores memoizados)                        |
 | Formularios | React Hook Form. Validación con Zod + `@hookform/resolvers`                                        |
-| Mapa        | Leaflet + `react-leaflet` + tiles de OpenStreetMap (sin API key)                                   |
-| Íconos      | `lucide-react` salvo que el kit de Figma indique otra cosa                                         |
-| Calidad     | ESLint + Prettier configurados, scripts `lint`, `typecheck`, `build`                               |
+| Mapa        | Leaflet + `react-leaflet`, con tiles que no requieran API key                                      |
+| Íconos      | Los SVG del kit de Figma; `lucide-react` solo para lo que el kit no define                         |
+| Calidad     | ESLint + Prettier configurados, scripts `lint`, `typecheck`, `test`, `build`                       |
 
 No agregues otras dependencias sin justificarlo en el plan.
 
@@ -47,17 +47,23 @@ src/
     store.ts            # configureStore, tipos RootState / AppDispatch
     hooks.ts            # useAppDispatch, useAppSelector tipados
   components/
-    ui/                 # design system: MultiSelect, FilterMenu, DatePicker, Badge, Button...
+    ui/                 # design system: MultiSelect, FilterMenu, DatePicker, Button...
   features/
     shipments/
-      components/       # ShipmentCard, ShipmentList, ShipmentMap, ShipmentActionsForm...
-      store/            # slice, selectores, thunks
+      components/       # ShipmentCard, ShipmentList, ShipmentMap...
+        actions/        # modal y formularios de acciones
+      store/            # slices, selectores, thunks
       hooks/
+      rules.ts          # reglas de negocio puras
+      schemas.ts        # esquemas Zod de los formularios
       types.ts
-      mock/             # shipments, drivers, vehicles
-    drivers/            # (o dentro de shipments si queda chico)
+      mock.ts
+    drivers/
     vehicles/
+    notifications/      # toasts
   lib/                  # utilidades puras (formateo de fechas, geografía)
+  dev/                  # página de ejemplos del kit (#dev)
+  test/                 # setup de Vitest y helpers de render
   App.tsx
   main.tsx
 ```
@@ -70,14 +76,15 @@ Reglas:
 
 ## 4. Modelo de datos
 
-Partir del tipo del enunciado y extenderlo para cubrir lo que muestra la card expandida:
+Partir del tipo del enunciado y extenderlo para cubrir lo que muestra la card del kit:
 
 ```ts
 type ShipmentStatus = 'pending' | 'assigned' | 'in_transit' | 'delivered' | 'cancelled';
 type Priority = 'low' | 'medium' | 'high';
 
 type Shipment = {
-  id: string; // ej. "SHP-1001"
+  id: string; // número de entrega, como en el kit: "123445"
+  trackingNumber: string; // la card lo muestra debajo del número
   customer: string;
   destination: { lat: number; lng: number; address: string };
   status: ShipmentStatus;
@@ -85,19 +92,22 @@ type Shipment = {
   driverId?: string;
   vehicleId?: string;
   estimatedDelivery: string; // ISO 8601
-  metrics: { weightKg: number; volumeM3: number; packageCount: number; value: number };
-  packages: { id: string; description: string; weightKg: number }[];
+  declaredValue: number;
+  packages: { code: string; weightKg: number; volumeM3: number }[]; // como el detalle del kit
+  cancellationReason?: string;
 };
 
 type Driver = { id: string; name: string; phone: string };
 type Vehicle = { id: string; plate: string; model: string; capacityKg: number };
 ```
 
+Las métricas de la card (peso, volumen, bultos y valor) **se calculan** a partir de los paquetes y del valor declarado; no se guardan aparte, para que no puedan quedar inconsistentes.
+
 Mock: **20 envíos, 5 conductores, 5 vehículos**. Condiciones:
 
 - Coordenadas reales y cercanas entre sí (una sola ciudad o región, por ejemplo Buenos Aires y alrededores) para que el mapa se vea bien.
 - Mezcla realista de estados y prioridades; al menos 3 envíos sin conductor ni vehículo (`pending`); al menos 1 `cancelled` y 1 `delivered`.
-- Coherencia: un envío `pending` no tiene conductor; uno `assigned` o `in_transit` sí.
+- Coherencia: un envío `pending` no tiene conductor; uno `assigned` o `in_transit` sí. En un mismo día, cada conductor usa un solo vehículo.
 - Fechas relativas al día actual para que los filtros por fecha tengan resultados.
 
 ## 5. Estado (Redux)
@@ -106,12 +116,12 @@ Mock: **20 envíos, 5 conductores, 5 vehículos**. Condiciones:
 - Slice de UI/filtros separado de los datos:
   ```ts
   filters: {
-    query: string;              // búsqueda de texto (id, cliente, dirección)
+    query: string;              // búsqueda de texto (número, seguimiento, cliente, dirección)
     statuses: ShipmentStatus[];
     priorities: Priority[];
     driverIds: string[];
     addressQuery: string;       // submenú "dirección" del Filtro
-    dateRange: { from?: string; to?: string }; // sobre estimatedDelivery
+    date?: string;              // submenú "fecha": un día ("YYYY-MM-DD") sobre estimatedDelivery
   }
   selectedShipmentId?: string;
   expandedShipmentIds: string[];
@@ -130,15 +140,15 @@ Mock: **20 envíos, 5 conductores, 5 vehículos**. Condiciones:
 
 **Mapa**
 
-- Un marcador por envío visible. El color del marcador refleja la prioridad o el estado (definir en el plan y mostrar leyenda).
+- Un marcador por envío visible. El color del marcador refleja el estado, con leyenda.
 - "Ubicar en el mapa": centra el mapa en el envío con `flyTo`, abre su popup y marca la card como seleccionada. Hacer clic en un marcador hace lo inverso: selecciona y expande la card (con scroll hasta ella).
 - Ajustar los límites del mapa (`fitBounds`) cuando cambian los filtros.
 
 **Filtros y búsqueda**
 
 - Barra de búsqueda de texto libre.
-- Componente **Filtro**: botón que abre un menú con submenús; cada submenú contiene un buscador de dirección o un date picker (ver kit).
-- Componente **Selección múltiple con búsqueda** para estado, prioridad y conductor, con todos sus estados: default, activo, búsqueda con resultados, búsqueda sin resultados y opciones seleccionadas, incluida la opción "Select all".
+- Componente **Filtro**: botón que abre un menú con submenús; cada submenú contiene un buscador de dirección o un date picker de un día (ver kit).
+- Componente **Selección múltiple con búsqueda** para estado, prioridad y conductor, con todos sus estados: default, activo, búsqueda con resultados, búsqueda sin resultados y opciones seleccionadas, incluida la opción "Select all" ("Seleccionar todo").
 - Los filtros activos se muestran como chips removibles.
 
 **Acciones sobre envíos** (formulario con React Hook Form + Zod)
@@ -150,19 +160,20 @@ Mock: **20 envíos, 5 conductores, 5 vehículos**. Condiciones:
 
 ## 7. Diseño
 
-- Se parte del UI Kit de Figma. **Si no podés acceder al archivo, usá las capturas y especificaciones de `/design`** y no improvises el estilo. Si falta algo, pedímelo.
+- Se parte del UI Kit de Figma enlazado en `CHALLENGE.md`. No improvises el estilo; si falta algo, pedímelo.
 - Extraé los tokens (colores, tipografía, radios, espaciados, sombras) al `tailwind.config` antes de construir componentes.
 - Cada componente del kit se implementa como componente reutilizable con **todos sus estados** documentados en un ejemplo simple (puede ser una página `/dev` o un archivo `examples`).
 - Layout sugerido: panel izquierdo con búsqueda, filtros y lista; mapa a la derecha. En pantallas chicas, mapa y lista como pestañas.
 
 ## 8. Calidad y accesibilidad
 
-- TypeScript sin errores, ESLint sin warnings, `npm run build` exitoso.
+- TypeScript sin errores, ESLint sin warnings, Prettier aplicado, `npm run build` exitoso.
 - Navegación por teclado en el multiselect y el menú de filtros (flechas, Enter, Escape).
 - Labels y `aria-*` correctos; foco visible; contraste suficiente.
-- Funciones puras de `lib/` y los selectores con tests unitarios (Vitest). Con eso alcanza; no hace falta testear cada componente.
+- Tests con Vitest: funciones puras de `lib/`, reglas y selectores, más tests de componentes con Testing Library para los flujos de teclado y los formularios. No hace falta testear cada componente.
 - Sin `console.log` ni código comentado en la entrega.
 - Commits chicos y con mensajes claros (conventional commits).
+- La CI (GitHub Actions) corre formato, lint, typecheck, tests y build en cada push y PR; el deploy solo sale si todo pasa.
 
 ## 9. Entregables
 
@@ -171,11 +182,11 @@ Mock: **20 envíos, 5 conductores, 5 vehículos**. Condiciones:
 
 ## 10. Definición de terminado
 
-- [ ] Los 20 envíos, 5 conductores y 5 vehículos se ven en lista y mapa.
-- [ ] Filtros, búsqueda y mapa están sincronizados.
-- [ ] Los tres componentes del kit existen con todos sus estados.
-- [ ] Las acciones funcionan con validación y feedback.
-- [ ] Estados vacío, carga y error cubiertos.
-- [ ] Responsive y navegable con teclado.
-- [ ] `lint`, `typecheck`, `test` y `build` pasan.
-- [ ] README completo.
+- [x] Los 20 envíos, 5 conductores y 5 vehículos se ven en lista y mapa.
+- [x] Filtros, búsqueda y mapa están sincronizados.
+- [x] Los tres componentes del kit existen con todos sus estados.
+- [x] Las acciones funcionan con validación y feedback.
+- [x] Estados vacío, carga y error cubiertos.
+- [x] Responsive y navegable con teclado.
+- [x] `lint`, `typecheck`, `test` y `build` pasan.
+- [x] README completo.
