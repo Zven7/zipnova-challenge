@@ -4,12 +4,24 @@ import { mockDrivers } from '@/features/drivers/mock';
 import { mockVehicles } from '@/features/vehicles/mock';
 import { createMockShipments } from '../mock';
 import {
+  selectActiveFilterChips,
+  selectAddressSuggestions,
   selectFilteredShipments,
   selectHasActiveFilters,
   selectIsExpanded,
   selectResultCount,
 } from './selectors';
-import { clearFilters, focusShipment, setStatuses, toggleExpanded } from './shipmentsViewSlice';
+import {
+  clearFilters,
+  focusShipment,
+  removeFilter,
+  selectShipment,
+  setAddressQuery,
+  setDate,
+  setDriverIds,
+  setStatuses,
+  toggleExpanded,
+} from './shipmentsViewSlice';
 import { fetchOperationData } from './thunks';
 
 function loadedStore() {
@@ -66,7 +78,17 @@ describe('estado de la vista', () => {
 
     const { shipmentsView } = store.getState();
     expect(shipmentsView.selectedShipmentId).toBe('123445');
+    expect(shipmentsView.selectionSource).toBe('map');
     expect(shipmentsView.expandedShipmentIds).toEqual(['123445']);
+  });
+
+  it('selectShipment marca la lista como origen y se puede limpiar', () => {
+    const store = loadedStore();
+    store.dispatch(selectShipment('123445'));
+    expect(store.getState().shipmentsView.selectionSource).toBe('list');
+    store.dispatch(selectShipment(undefined));
+    expect(store.getState().shipmentsView.selectedShipmentId).toBeUndefined();
+    expect(store.getState().shipmentsView.selectionSource).toBeUndefined();
   });
 
   it('toggleExpanded alterna la expansión', () => {
@@ -75,5 +97,35 @@ describe('estado de la vista', () => {
     expect(selectIsExpanded(store.getState(), '123445')).toBe(true);
     store.dispatch(toggleExpanded('123445'));
     expect(selectIsExpanded(store.getState(), '123445')).toBe(false);
+  });
+});
+
+describe('filtros activos', () => {
+  it('arma chips con etiquetas legibles y removeFilter quita cada uno', () => {
+    const store = loadedStore();
+    store.dispatch(setStatuses(['pending', 'in_transit']));
+    store.dispatch(setDriverIds(['drv-1']));
+    store.dispatch(setAddressQuery('Palermo'));
+    store.dispatch(setDate('2026-10-31'));
+
+    expect(selectActiveFilterChips(store.getState()).map((chip) => chip.label)).toEqual([
+      'Estado: Pendiente',
+      'Estado: En tránsito',
+      'Conductor: Martín Gómez',
+      'Dirección: Palermo',
+      'Fecha: 31/10/2026',
+    ]);
+
+    for (const chip of selectActiveFilterChips(store.getState())) {
+      store.dispatch(removeFilter(chip.filter));
+    }
+    expect(selectActiveFilterChips(store.getState())).toEqual([]);
+    expect(selectHasActiveFilters(store.getState())).toBe(false);
+  });
+
+  it('las sugerencias de dirección son únicas y ordenadas', () => {
+    const suggestions = selectAddressSuggestions(loadedStore().getState());
+    expect(suggestions).toHaveLength(20);
+    expect(suggestions).toEqual([...suggestions].sort((a, b) => a.localeCompare(b, 'es')));
   });
 });

@@ -52,3 +52,13 @@ export type ShipmentFilters = {
   /** Día de entrega estimada, "YYYY-MM-DD". */
   date?: string;
 };
+
+/** Un filtro aplicado que se puede quitar desde su chip. */
+export type ActiveFilter =
+  | { kind: 'status'; value: ShipmentStatus }
+  | { kind: 'priority'; value: Priority }
+  | { kind: 'driver'; value: string }
+  | { kind: 'address' }
+  | { kind: 'date' };
+
+export type ActiveFilterChip = { key: string; label: string; filter: ActiveFilter };
