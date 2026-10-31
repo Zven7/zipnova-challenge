@@ -17,7 +17,7 @@ npm run dev
 | `npm run build`     | Typecheck + build de producción     |
 | `npm run typecheck` | TypeScript sin emitir               |
 | `npm run lint`      | ESLint, falla con cualquier warning |
-| `npm test`          | Tests unitarios (Vitest)            |
+| `npm test`          | Tests unitarios y de componentes    |
 | `npm run format`    | Prettier                            |
 
 Rutas útiles:
@@ -67,7 +67,7 @@ src/
 
 **Tailwind 4 con config en JS.** AGENTS.md pide los tokens en `tailwind.config`, así que se cargan con `@config`. En ese modo Tailwind no genera variables CSS para los tokens, por eso el CSS propio usa `theme('colors.surface.DEFAULT')`.
 
-**Mapa.** Leaflet + `react-leaflet`, con tiles sin API key. El estilo Simple usa Esri World Dark Gray: base de poco detalle y etiquetas en una capa aparte, atenuada, para que no compitan con los marcadores. El Detallado es OpenStreetMap estándar. CARTO Dark Matter se descartó porque hoy exige key (devuelve una imagen "API KEY REQUIRED"). Los marcadores son `divIcon`: los colores salen de los tokens, son enfocables con teclado y se evita el problema de los PNG por defecto con Vite. El mapa y el diálogo de acciones (React Hook Form + Zod) se cargan en diferido (`lazy`), cada uno en su chunk. El área clickeable de cada marcador es de 24 px aunque el punto visible sea más chico.
+**Mapa.** Leaflet + `react-leaflet`, con tiles sin API key. El estilo Simple usa Esri World Dark Gray: base de poco detalle y etiquetas en una capa aparte, atenuada, para que no compitan con los marcadores. El Detallado es OpenStreetMap estándar. CARTO Dark Matter se descartó porque hoy exige key (devuelve una imagen "API KEY REQUIRED"). Los marcadores son `divIcon`: los colores salen de los tokens, son enfocables con teclado y se evita el problema de los PNG por defecto con Vite. El mapa y el diálogo de acciones (React Hook Form + Zod) se cargan en diferido (`lazy`), cada uno en su chunk. Si esa descarga falla (red, deploy nuevo), un error boundary muestra "Reintentar" en lugar de dejar la pantalla en blanco, y la lista sigue funcionando. El área clickeable de cada marcador es de 24 px aunque el punto visible sea más chico.
 
 **Estado y normalización.** Envíos, conductores y vehículos usan `createEntityAdapter`. Los filtros, la selección y las cards expandidas viven en un slice de vista separado de los datos. **`selectFilteredShipments` es la única fuente de lo visible**: la lista, el contador y los marcadores consumen ese selector, y ningún componente filtra por su cuenta. La selección guarda su origen (`list` o `map`) y un contador de versión. Así "ubicar" centra el mapa aunque el envío ya esté seleccionado, y el clic en un marcador no provoca un zoom que salte.
 
@@ -79,7 +79,7 @@ src/
 
 **Accesibilidad.** La selección múltiple sigue el patrón combobox + listbox multiselección (flechas, Home/End, Enter, Escape). El filtro es un menú (flechas, ArrowRight para entrar al submenú, Escape para volver) y el date picker es una grilla con foco itinerante (flechas, PageUp/PageDown). El modal usa `<dialog>` nativo, que atrapa el foco, cierra con Escape y lo devuelve al cerrar. Todos los controles tienen label y foco visible.
 
-**Tests.** Vitest cubre las funciones puras de `lib/`, las reglas, los esquemas, los selectores (incluida la memoización), el slice de vista, los thunks (con temporizadores falsos) y la coherencia del mock.
+**Tests.** Vitest cubre las funciones puras de `lib/`, las reglas, los esquemas, los selectores (incluida la memoización), el slice de vista, los thunks (con temporizadores falsos) y la coherencia del mock. Con Testing Library (en jsdom) se prueban los flujos de mayor riesgo: la navegación por teclado de la selección múltiple y del menú de filtros, las validaciones y la propuesta de vehículo del formulario de asignación, y el panel con un store real (filtros, chips, estado vacío y que la lista muestre exactamente lo que dibuja el mapa). El mapa en sí no se testea en jsdom, porque Leaflet necesita un layout real.
 
 ## Supuestos y decisiones donde el enunciado era ambiguo
 
@@ -101,7 +101,7 @@ Cuando AGENTS.md y CHALLENGE.md difieren, prevalece CHALLENGE.md y el diseño de
 
 ## Qué mejoraría con más tiempo
 
-- Tests de componentes con Testing Library para los flujos de teclado, y algunos e2e con Playwright. Hoy esos flujos se verificaron a mano y con scripts en el navegador.
+- Algunos tests e2e con Playwright para lo que jsdom no cubre: el mapa (marcadores, `flyTo`, popups) y el layout mobile con pestañas.
 - Guardar los filtros en la URL para poder compartir una vista, y persistir los cambios en `localStorage`.
 - Agrupar marcadores cercanos (clustering) y virtualizar la lista, para volúmenes reales de envíos.
 - Deshacer una cancelación desde el toast y un historial de cambios por envío.
