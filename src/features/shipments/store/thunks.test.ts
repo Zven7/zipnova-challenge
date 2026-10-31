@@ -3,7 +3,7 @@ import { setupStore } from '@/app/store';
 import { mockDrivers } from '@/features/drivers/mock';
 import { mockVehicles } from '@/features/vehicles/mock';
 import { createMockShipments } from '../mock';
-import { VEHICLE_BUSY_MESSAGE } from '../schemas';
+import { VEHICLE_BUSY_MESSAGE } from '../rules';
 import { selectShipmentById } from './selectors';
 import { assignShipment, cancelShipment, changeShipmentStatus, fetchOperationData } from './thunks';
 

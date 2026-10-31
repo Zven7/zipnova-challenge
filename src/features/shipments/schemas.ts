@@ -1,8 +1,7 @@
 import { z } from 'zod';
-import { canTransition } from './rules';
+import { canTransition, VEHICLE_BUSY_MESSAGE } from './rules';
 import { SHIPMENT_STATUSES, type ShipmentStatus } from './types';
 
-export const VEHICLE_BUSY_MESSAGE = 'Ese vehículo está en tránsito con otro envío.';
 export const REASON_MAX_LENGTH = 200;
 
 /** Conductor y vehículo son obligatorios; el vehículo no puede estar en tránsito con otro envío. */

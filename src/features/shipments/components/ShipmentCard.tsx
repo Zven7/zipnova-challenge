@@ -54,9 +54,9 @@ export function ShipmentCard({ id, onLocate, onOpenActions, ref }: ShipmentCardP
     >
       <div className="flex items-center justify-between gap-4 p-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <h3 id={titleId} className="text-small font-semibold text-fg">
+          <h2 id={titleId} className="text-small font-semibold text-fg">
             Entrega {shipment.id}
-          </h3>
+          </h2>
           <p className="text-tiny leading-[14px] font-light text-fg">{shipment.trackingNumber}</p>
         </div>
         <div className="flex items-center gap-4">

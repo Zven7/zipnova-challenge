@@ -4,8 +4,8 @@ import {
   createAssignmentSchema,
   createStatusSchema,
   REASON_MAX_LENGTH,
-  VEHICLE_BUSY_MESSAGE,
 } from './schemas';
+import { VEHICLE_BUSY_MESSAGE } from './rules';
 
 const firstError = (result: { success: boolean; error?: { issues: { message: string }[] } }) =>
   result.error?.issues[0]?.message;

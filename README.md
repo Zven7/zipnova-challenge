@@ -29,7 +29,7 @@ Rutas útiles:
 ## Qué hace
 
 - **Listado** de los 20 envíos con la card del kit: colapsada (número, seguimiento, ubicar en el mapa) y expandida (peso, volumen, bultos, valor, paquetes y asignación). Contador "12 de 20 envíos", skeleton de carga, estado de error y estado vacío con "Limpiar filtros".
-- **Mapa** (Leaflet) con un marcador por envío visible, coloreado por estado y con leyenda. Oscuro por defecto (Esri Dark Gray, con poco detalle para que resalten los pins), con un selector para el mapa claro estándar de OpenStreetMap.
+- **Mapa** (Leaflet) con un marcador por envío visible, coloreado por estado y con leyenda. Un selector elige el nivel de detalle: **Simple** (por defecto; Esri Dark Gray, oscuro y con poco detalle para que resalten los pins) o **Detallado** (OpenStreetMap estándar).
 - **Sincronización lista ↔ mapa**: "ubicar" centra con `flyTo` y abre el popup; un clic en un marcador selecciona la card, la expande y hace scroll hasta ella. Al filtrar, el mapa se ajusta con `fitBounds`.
 - **Filtros y búsqueda**: texto libre (número, seguimiento, cliente, dirección), selección múltiple con búsqueda para estado, prioridad y conductor, y el menú **Filtro** con los submenús de dirección y fecha. Los filtros activos se muestran como chips removibles.
 - **Acciones** en un modal con React Hook Form + Zod: asignar o reasignar conductor y vehículo, cambiar el estado según el flujo válido y cancelar con confirmación y motivo opcional. Errores por campo, estado de carga y toast de éxito.
@@ -67,7 +67,7 @@ src/
 
 **Tailwind 4 con config en JS.** AGENTS.md pide los tokens en `tailwind.config`, así que se cargan con `@config`. En ese modo Tailwind no genera variables CSS para los tokens, por eso el CSS propio usa `theme('colors.surface.DEFAULT')`.
 
-**Mapa.** Leaflet + `react-leaflet`, con tiles sin API key. El modo oscuro usa Esri World Dark Gray: base de poco detalle y etiquetas en una capa aparte, atenuada, para que no compitan con los marcadores. El claro es OpenStreetMap estándar. CARTO Dark Matter se descartó porque hoy exige key (devuelve una imagen "API KEY REQUIRED"). Los marcadores son `divIcon`: los colores salen de los tokens, son enfocables con teclado y se evita el problema de los PNG por defecto con Vite. El mapa se carga en diferido (`lazy`), en un chunk propio.
+**Mapa.** Leaflet + `react-leaflet`, con tiles sin API key. El estilo Simple usa Esri World Dark Gray: base de poco detalle y etiquetas en una capa aparte, atenuada, para que no compitan con los marcadores. El Detallado es OpenStreetMap estándar. CARTO Dark Matter se descartó porque hoy exige key (devuelve una imagen "API KEY REQUIRED"). Los marcadores son `divIcon`: los colores salen de los tokens, son enfocables con teclado y se evita el problema de los PNG por defecto con Vite. El mapa y el diálogo de acciones (React Hook Form + Zod) se cargan en diferido (`lazy`), cada uno en su chunk. El área clickeable de cada marcador es de 24 px aunque el punto visible sea más chico.
 
 **Estado y normalización.** Envíos, conductores y vehículos usan `createEntityAdapter`. Los filtros, la selección y las cards expandidas viven en un slice de vista separado de los datos. **`selectFilteredShipments` es la única fuente de lo visible**: la lista, el contador y los marcadores consumen ese selector, y ningún componente filtra por su cuenta. La selección guarda su origen (`list` o `map`) y un contador de versión. Así "ubicar" centra el mapa aunque el envío ya esté seleccionado, y el clic en un marcador no provoca un zoom que salte.
 

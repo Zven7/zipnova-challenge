@@ -1,18 +1,19 @@
 import { useState } from 'react';
 
-export type MapStyle = 'dark' | 'light';
+/** `simple`: base oscura con poco detalle (resaltan los marcadores). `detailed`: OpenStreetMap estándar. */
+export type MapStyle = 'simple' | 'detailed';
 
 const STORAGE_KEY = 'shipments.mapStyle';
 
 function readStoredStyle(): MapStyle {
   try {
-    return localStorage.getItem(STORAGE_KEY) === 'light' ? 'light' : 'dark';
+    return localStorage.getItem(STORAGE_KEY) === 'detailed' ? 'detailed' : 'simple';
   } catch {
-    return 'dark';
+    return 'simple';
   }
 }
 
-/** Estilo del mapa (oscuro por defecto), recordado por navegador. */
+/** Estilo del mapa (simple por defecto), recordado por navegador. */
 export function useMapStyle() {
   const [style, setStyle] = useState<MapStyle>(readStoredStyle);
 

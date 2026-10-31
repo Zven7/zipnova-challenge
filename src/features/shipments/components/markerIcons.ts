@@ -4,6 +4,9 @@ import type { ShipmentStatus } from '../types';
 
 const cache = new Map<string, DivIcon>();
 
+// Área clickeable mínima de 24 px (WCAG 2.5.8); el punto visible es más chico y va centrado.
+const HIT_SIZE = 24;
+
 /** Marcador circular con el color del estado; el seleccionado es más grande y con borde claro. */
 export function getMarkerIcon(status: ShipmentStatus, selected: boolean): DivIcon {
   const key = `${status}-${String(selected)}`;
@@ -14,9 +17,9 @@ export function getMarkerIcon(status: ShipmentStatus, selected: boolean): DivIco
   const ring = selected ? 'border-[3px] border-fg' : 'border-2 border-bg';
   const icon = divIcon({
     className: '',
-    html: `<span class="block size-full rounded-full shadow-elevation-1 ${ring} ${STATUS_DOT_CLASSES[status]}"></span>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
+    html: `<span class="flex size-full items-center justify-center"><span class="block rounded-full shadow-elevation-1 ${ring} ${STATUS_DOT_CLASSES[status]}" style="width:${String(size)}px;height:${String(size)}px"></span></span>`,
+    iconSize: [HIT_SIZE, HIT_SIZE],
+    iconAnchor: [HIT_SIZE / 2, HIT_SIZE / 2],
     popupAnchor: [0, -size / 2 - 2],
   });
   cache.set(key, icon);

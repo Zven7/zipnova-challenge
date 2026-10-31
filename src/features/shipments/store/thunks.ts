@@ -7,8 +7,13 @@ import type { Vehicle } from '@/features/vehicles/types';
 import { delay } from '@/lib/delay';
 import { shouldSimulateFailure } from '@/lib/simulation';
 import { createMockShipments } from '../mock';
-import { canAssign, canCancel, canTransition, getBusyVehicleIds } from '../rules';
-import { VEHICLE_BUSY_MESSAGE } from '../schemas';
+import {
+  canAssign,
+  canCancel,
+  canTransition,
+  getBusyVehicleIds,
+  VEHICLE_BUSY_MESSAGE,
+} from '../rules';
 import type { Shipment, ShipmentStatus } from '../types';
 
 const LOAD_DELAY_MS = 600;

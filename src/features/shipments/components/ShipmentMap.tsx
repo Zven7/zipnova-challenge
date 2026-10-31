@@ -29,7 +29,7 @@ type TileConfig = {
  * capa aparte, atenuada para que no compitan con ellos. OSM es el mapa estándar.
  */
 const tileConfigs: Record<MapStyle, TileConfig> = {
-  dark: {
+  simple: {
     layers: [
       { url: `${ESRI_CANVAS}/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}` },
       { url: `${ESRI_CANVAS}/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, opacity: 0.55 },
@@ -37,7 +37,7 @@ const tileConfigs: Record<MapStyle, TileConfig> = {
     attribution: `Tiles &copy; Esri &mdash; Esri, HERE, Garmin, ${OSM_ATTRIBUTION}`,
     maxNativeZoom: 16,
   },
-  light: {
+  detailed: {
     layers: [{ url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' }],
     attribution: OSM_ATTRIBUTION,
     maxNativeZoom: 19,
@@ -45,8 +45,8 @@ const tileConfigs: Record<MapStyle, TileConfig> = {
 };
 
 const styleOptions: { value: MapStyle; label: string }[] = [
-  { value: 'dark', label: 'Oscuro' },
-  { value: 'light', label: 'Claro' },
+  { value: 'simple', label: 'Simple' },
+  { value: 'detailed', label: 'Detallado' },
 ];
 
 type ShipmentMapProps = {
@@ -116,7 +116,7 @@ export function ShipmentMap({ visible, onShowInList }: ShipmentMapProps) {
 
       <div className="absolute top-3 right-3 z-[1000]">
         <SegmentedControl
-          label="Estilo del mapa"
+          label="Nivel de detalle del mapa"
           options={styleOptions}
           value={mapStyle}
           onChange={setMapStyle}

@@ -1,5 +1,8 @@
 import type { Shipment, ShipmentStatus } from './types';
 
+// Lo usan el schema del formulario y los thunks; vive acá para que el store no dependa de Zod.
+export const VEHICLE_BUSY_MESSAGE = 'Ese vehículo está en tránsito con otro envío.';
+
 /** Flujo lineal: pending → assigned → in_transit → delivered. */
 const NEXT_STATUS: Partial<Record<ShipmentStatus, ShipmentStatus>> = {
   pending: 'assigned',

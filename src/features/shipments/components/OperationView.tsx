@@ -5,12 +5,17 @@ import { cn } from '@/lib/cn';
 import { Toaster } from '@/features/notifications/Toaster';
 import { focusShipment } from '../store/shipmentsViewSlice';
 import { fetchOperationData } from '../store/thunks';
-import { ShipmentActionsDialog } from './actions/ShipmentActionsDialog';
 import { ShipmentsPanel } from './ShipmentsPanel';
 
 // Leaflet va en un chunk aparte para que la lista aparezca antes.
 const ShipmentMap = lazy(() =>
   import('./ShipmentMap').then((module) => ({ default: module.ShipmentMap })),
+);
+// Los formularios (React Hook Form + Zod) solo se descargan al abrir las acciones.
+const ShipmentActionsDialog = lazy(() =>
+  import('./actions/ShipmentActionsDialog').then((module) => ({
+    default: module.ShipmentActionsDialog,
+  })),
 );
 
 type Tab = 'list' | 'map';
@@ -35,7 +40,7 @@ export function OperationView() {
   const showMap = isDesktop || tab === 'map';
 
   return (
-    <div className="flex h-full flex-col lg:flex-row">
+    <main className="flex h-full flex-col lg:flex-row">
       <div
         role="tablist"
         aria-label="Vista"
@@ -62,10 +67,11 @@ export function OperationView() {
         ))}
       </div>
 
-      <aside
+      <section
         id="panel-list"
         role={isDesktop ? undefined : 'tabpanel'}
         aria-labelledby={isDesktop ? undefined : 'tab-list'}
+        aria-label={isDesktop ? 'Lista de envíos' : undefined}
         className={cn(
           'relative z-10 min-h-0 flex-1 bg-bg lg:w-[402px] lg:flex-none lg:border-r lg:border-line',
           !showList && 'hidden',
@@ -77,7 +83,7 @@ export function OperationView() {
           }}
           onOpenActions={setActionsShipmentId}
         />
-      </aside>
+      </section>
 
       <section
         id="panel-map"
@@ -102,14 +108,16 @@ export function OperationView() {
       </section>
 
       {actionsShipmentId && (
-        <ShipmentActionsDialog
-          id={actionsShipmentId}
-          onClose={() => {
-            setActionsShipmentId(undefined);
-          }}
-        />
+        <Suspense fallback={null}>
+          <ShipmentActionsDialog
+            id={actionsShipmentId}
+            onClose={() => {
+              setActionsShipmentId(undefined);
+            }}
+          />
+        </Suspense>
       )}
       <Toaster />
-    </div>
+    </main>
   );
 }
