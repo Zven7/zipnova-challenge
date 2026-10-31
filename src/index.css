@@ -16,3 +16,21 @@
     @apply outline-2 outline-offset-2 outline-primary;
   }
 }
+
+/* Scrollbar del kit: barra de 4px, color #354551, radio 24px. */
+@utility scrollbar-kit {
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 24px;
+    background: var(--color-surface-hover);
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-surface-hover) transparent;
+  }
+}
