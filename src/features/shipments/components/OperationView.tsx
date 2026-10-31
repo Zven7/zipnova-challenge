@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { useAppDispatch } from '@/app/hooks';
 import { useMediaQuery } from '@/components/ui/useMediaQuery';
 import { cn } from '@/lib/cn';
+import { Toaster } from '@/features/notifications/Toaster';
 import { focusShipment } from '../store/shipmentsViewSlice';
 import { fetchOperationData } from '../store/thunks';
+import { ShipmentActionsDialog } from './actions/ShipmentActionsDialog';
 import { ShipmentMap } from './ShipmentMap';
 import { ShipmentsPanel } from './ShipmentsPanel';
 
@@ -19,7 +21,7 @@ export function OperationView() {
   const dispatch = useAppDispatch();
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const [tab, setTab] = useState<Tab>('list');
-  const [, setActionsShipmentId] = useState<string>();
+  const [actionsShipmentId, setActionsShipmentId] = useState<string>();
 
   useEffect(() => {
     void dispatch(fetchOperationData());
@@ -88,6 +90,16 @@ export function OperationView() {
           }}
         />
       </section>
+
+      {actionsShipmentId && (
+        <ShipmentActionsDialog
+          id={actionsShipmentId}
+          onClose={() => {
+            setActionsShipmentId(undefined);
+          }}
+        />
+      )}
+      <Toaster />
     </div>
   );
 }

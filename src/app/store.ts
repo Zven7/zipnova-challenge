@@ -1,5 +1,6 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { driversSlice } from '@/features/drivers/store/driversSlice';
+import { toastsSlice } from '@/features/notifications/toastsSlice';
 import { shipmentsSlice } from '@/features/shipments/store/shipmentsSlice';
 import { shipmentsViewSlice } from '@/features/shipments/store/shipmentsViewSlice';
 import { vehiclesSlice } from '@/features/vehicles/store/vehiclesSlice';
@@ -9,6 +10,7 @@ const rootReducer = combineReducers({
   shipmentsView: shipmentsViewSlice.reducer,
   drivers: driversSlice.reducer,
   vehicles: vehiclesSlice.reducer,
+  toasts: toastsSlice.reducer,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

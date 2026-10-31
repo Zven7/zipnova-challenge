@@ -1,6 +1,6 @@
-import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
+import { createEntityAdapter, createSlice, isAnyOf } from '@reduxjs/toolkit';
 import type { Shipment } from '../types';
-import { fetchOperationData } from './thunks';
+import { assignShipment, cancelShipment, changeShipmentStatus, fetchOperationData } from './thunks';
 
 export type LoadStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
 
@@ -30,9 +30,15 @@ export const shipmentsSlice = createSlice({
         state.loadStatus = 'succeeded';
         shipmentsAdapter.setAll(state, action.payload.shipments);
       })
-      .addCase(fetchOperationData.rejected, (state) => {
+      .addCase(fetchOperationData.rejected, (state, action) => {
         state.loadStatus = 'failed';
-        state.loadError = 'No pudimos cargar los envíos.';
-      });
+        state.loadError = action.payload ?? 'No pudimos cargar los envíos.';
+      })
+      .addMatcher(
+        isAnyOf(assignShipment.fulfilled, changeShipmentStatus.fulfilled, cancelShipment.fulfilled),
+        (state, action) => {
+          shipmentsAdapter.updateOne(state, action.payload);
+        },
+      );
   },
 });

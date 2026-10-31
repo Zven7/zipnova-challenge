@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes } from 'react';
 import { cn } from '@/lib/cn';
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
 };
 
 const variants = {
@@ -10,6 +10,8 @@ const variants = {
     'bg-primary text-bg hover:bg-primary-alt disabled:bg-surface-hover disabled:text-fg-muted',
   secondary: 'border border-line bg-surface text-fg hover:bg-surface-raised disabled:text-fg-muted',
   ghost: 'text-fg-soft hover:bg-surface-raised hover:text-fg disabled:text-fg-faint',
+  danger:
+    'bg-status-cancelled text-bg hover:opacity-90 disabled:bg-surface-hover disabled:text-fg-muted',
 };
 
 /** Botón con los tokens del kit (el kit no incluye un botón; usa la forma de píldora del input). */

@@ -31,7 +31,7 @@ function loadedStore() {
     drivers: mockDrivers,
     vehicles: mockVehicles,
   };
-  store.dispatch(fetchOperationData.fulfilled(data, 'test'));
+  store.dispatch(fetchOperationData.fulfilled(data, 'test', undefined));
   return store;
 }
 

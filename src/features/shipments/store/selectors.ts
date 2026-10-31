@@ -6,6 +6,7 @@ import { getShipmentMetrics } from '../metrics';
 import { parseDateKey } from '@/lib/date';
 import { formatDate } from '@/lib/format';
 import { PRIORITY_LABELS, STATUS_LABELS } from '../constants';
+import { getBusyVehicleIds } from '../rules';
 import type { ActiveFilterChip, Shipment } from '../types';
 import { filterShipments, hasActiveFilters } from './filterShipments';
 import { shipmentsAdapter } from './shipmentsSlice';
@@ -102,4 +103,10 @@ export const selectActiveFilterChips = createSelector(
         ]
       : []),
   ],
+);
+
+/** Vehículos en tránsito con otro envío: no se pueden asignar a `shipmentId`. */
+export const selectBusyVehicleIds = createSelector(
+  [selectAllShipments, (_state: RootState, shipmentId: string) => shipmentId],
+  getBusyVehicleIds,
 );
