@@ -11,14 +11,14 @@ npm install
 npm run dev
 ```
 
-| Script | Qué hace |
-|---|---|
-| `npm run dev` | Servidor de desarrollo (Vite) |
-| `npm run build` | Typecheck + build de producción |
-| `npm run typecheck` | TypeScript sin emitir |
-| `npm run lint` | ESLint, falla con cualquier warning |
-| `npm test` | Tests unitarios (Vitest) |
-| `npm run format` | Prettier |
+| Script              | Qué hace                            |
+| ------------------- | ----------------------------------- |
+| `npm run dev`       | Servidor de desarrollo (Vite)       |
+| `npm run build`     | Typecheck + build de producción     |
+| `npm run typecheck` | TypeScript sin emitir               |
+| `npm run lint`      | ESLint, falla con cualquier warning |
+| `npm test`          | Tests unitarios (Vitest)            |
+| `npm run format`    | Prettier                            |
 
 Rutas útiles:
 
