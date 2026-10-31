@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useAppDispatch } from '@/app/hooks';
 import { useMediaQuery } from '@/components/ui/useMediaQuery';
 import { cn } from '@/lib/cn';
@@ -6,8 +6,12 @@ import { Toaster } from '@/features/notifications/Toaster';
 import { focusShipment } from '../store/shipmentsViewSlice';
 import { fetchOperationData } from '../store/thunks';
 import { ShipmentActionsDialog } from './actions/ShipmentActionsDialog';
-import { ShipmentMap } from './ShipmentMap';
 import { ShipmentsPanel } from './ShipmentsPanel';
+
+// Leaflet va en un chunk aparte para que la lista aparezca antes.
+const ShipmentMap = lazy(() =>
+  import('./ShipmentMap').then((module) => ({ default: module.ShipmentMap })),
+);
 
 type Tab = 'list' | 'map';
 
@@ -82,13 +86,19 @@ export function OperationView() {
         aria-label={isDesktop ? 'Mapa de envíos' : undefined}
         className={cn('relative min-h-0 flex-1', !showMap && 'hidden')}
       >
-        <ShipmentMap
-          visible={showMap}
-          onShowInList={(id) => {
-            dispatch(focusShipment(id));
-            setTab('list');
-          }}
-        />
+        <Suspense
+          fallback={
+            <div aria-label="Cargando mapa" className="h-full w-full animate-pulse bg-surface" />
+          }
+        >
+          <ShipmentMap
+            visible={showMap}
+            onShowInList={(id) => {
+              dispatch(focusShipment(id));
+              setTab('list');
+            }}
+          />
+        </Suspense>
       </section>
 
       {actionsShipmentId && (

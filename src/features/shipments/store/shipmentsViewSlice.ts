@@ -87,6 +87,11 @@ export const shipmentsViewSlice = createSlice({
         state.expandedShipmentIds.push(action.payload);
       }
     },
+    expandShipment(state, action: PayloadAction<string>) {
+      if (!state.expandedShipmentIds.includes(action.payload)) {
+        state.expandedShipmentIds.push(action.payload);
+      }
+    },
     toggleExpanded(state, action: PayloadAction<string>) {
       const id = action.payload;
       state.expandedShipmentIds = state.expandedShipmentIds.includes(id)
@@ -107,5 +112,6 @@ export const {
   clearFilters,
   selectShipment,
   focusShipment,
+  expandShipment,
   toggleExpanded,
 } = shipmentsViewSlice.actions;

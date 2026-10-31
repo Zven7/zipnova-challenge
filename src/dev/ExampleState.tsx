@@ -2,11 +2,11 @@ import type { ReactNode } from 'react';
 
 type ExampleStateProps = {
   title: string;
-  width?: 'narrow' | 'default' | 'wide';
+  width?: 'narrow' | 'default' | 'card' | 'wide';
   children: ReactNode;
 };
 
-const widths = { narrow: 'w-[180px]', default: 'w-[340px]', wide: 'w-[560px]' };
+const widths = { narrow: 'w-[180px]', default: 'w-[340px]', card: 'w-[378px]', wide: 'w-[560px]' };
 
 export function ExampleState({ title, width = 'default', children }: ExampleStateProps) {
   return (

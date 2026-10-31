@@ -1,8 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { DatePicker } from '@/components/ui/DatePicker';
 import { FilterMenu, type FilterMenuItem } from '@/components/ui/FilterMenu';
 import { MultiSelect, type SelectOption } from '@/components/ui/MultiSelect';
 import { SuggestionSearch } from '@/components/ui/SuggestionSearch';
+import { ShipmentCard } from '@/features/shipments/components/ShipmentCard';
+import { selectLoadStatus } from '@/features/shipments/store/selectors';
+import { expandShipment } from '@/features/shipments/store/shipmentsViewSlice';
+import { fetchOperationData } from '@/features/shipments/store/thunks';
 import { ExampleSection } from './ExampleSection';
 import { ExampleState } from './ExampleState';
 
@@ -26,10 +31,18 @@ const labels = { label: 'Etiqueta', secondLabel: 'Etiqueta secundaria', hint: 'T
 
 /** Página de ejemplos de los componentes del kit con todos sus estados (#dev). */
 export function ExamplesPage() {
+  const dispatch = useAppDispatch();
+  const loadStatus = useAppSelector(selectLoadStatus);
   const [interactive, setInteractive] = useState<string[]>([]);
   const [selected, setSelected] = useState(['option-1', 'option-2', 'option-3']);
   const [date, setDate] = useState<string | undefined>(KIT_DATE);
   const [address, setAddress] = useState<string>();
+
+  // La card usa el store: carga los datos y deja expandida la entrega del kit (123445).
+  useEffect(() => {
+    if (loadStatus === 'idle') void dispatch(fetchOperationData());
+    if (loadStatus === 'succeeded') dispatch(expandShipment('123445'));
+  }, [dispatch, loadStatus]);
 
   const filterItems: FilterMenuItem[] = [
     {
@@ -133,6 +146,19 @@ export function ExamplesPage() {
         <ExampleState title="Valores elegidos" width="narrow">
           <p className="text-small text-fg-soft">Dirección: {address ?? '—'}</p>
           <p className="text-small text-fg-soft">Fecha: {date ?? '—'}</p>
+        </ExampleState>
+      </ExampleSection>
+
+      <ExampleSection title="Card de envío">
+        <ExampleState title="Colapsada" width="card">
+          {loadStatus === 'succeeded' && (
+            <ShipmentCard id="123452" onLocate={() => undefined} onOpenActions={() => undefined} />
+          )}
+        </ExampleState>
+        <ExampleState title="Expandida (con el bloque de detalle agregado)" width="card">
+          {loadStatus === 'succeeded' && (
+            <ShipmentCard id="123445" onLocate={() => undefined} onOpenActions={() => undefined} />
+          )}
         </ExampleState>
       </ExampleSection>
 
