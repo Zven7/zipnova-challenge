@@ -33,6 +33,16 @@ type FilterMenuProps = {
 };
 
 const ITEM_HEIGHT = 32;
+const MENU_WIDTH = 224;
+/** Lugar para el submenú más ancho (date picker) a la derecha del menú, más un margen. */
+const SUBMENU_ROOM = 300;
+
+/**
+ * "side": como el kit, el submenú se abre al costado del menú.
+ * "stacked": sin lugar a la derecha, el menú se alinea al botón por la derecha y el submenú va debajo.
+ */
+type Placement = 'side' | 'stacked';
+
 const SUBMENU_FOCUS_ORDER = ['[tabindex="0"]', 'input', 'button:not([tabindex="-1"])'];
 
 export function FilterMenu({
@@ -52,6 +62,7 @@ export function FilterMenu({
 
   const [open, setOpen] = useState(defaultOpen || defaultOpenItemId !== undefined);
   const [openItemId, setOpenItemId] = useState(defaultOpenItemId);
+  const [placement, setPlacement] = useState<Placement>('side');
   const openIndex = items.findIndex((item) => item.id === openItemId);
   const openItem = items[openIndex];
 
@@ -66,6 +77,14 @@ export function FilterMenu({
   }, [close, buttonId]);
 
   useDismiss(rootRef, close, open);
+
+  function openMenu(focusFirstItem: boolean) {
+    const rect = document.getElementById(buttonId)?.getBoundingClientRect();
+    const fitsSide = !rect || rect.left + MENU_WIDTH + SUBMENU_ROOM <= window.innerWidth;
+    setPlacement(fitsSide ? 'side' : 'stacked');
+    if (focusFirstItem) pendingItemFocus.current = 0;
+    setOpen(true);
+  }
 
   useEffect(() => {
     if (!open || pendingItemFocus.current === null) return;
@@ -98,8 +117,7 @@ export function FilterMenu({
   function handleButtonKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
     if (['ArrowDown', 'Enter', ' '].includes(event.key)) {
       event.preventDefault();
-      pendingItemFocus.current = 0;
-      setOpen(true);
+      openMenu(true);
     }
   }
 
@@ -156,7 +174,7 @@ export function FilterMenu({
         aria-controls={open ? menuId : undefined}
         onClick={() => {
           if (open) close();
-          else setOpen(true);
+          else openMenu(false);
         }}
         onKeyDown={handleButtonKeyDown}
         className={cn(
@@ -168,7 +186,7 @@ export function FilterMenu({
       </button>
 
       {open && (
-        <div className="absolute top-10 left-0 z-40">
+        <div className={cn('absolute top-10 z-40', placement === 'side' ? 'left-0' : 'right-0')}>
           <div
             id={menuId}
             role="menu"
@@ -188,7 +206,8 @@ export function FilterMenu({
                 aria-expanded={openItemId === item.id}
                 data-active={openItemId === item.id}
                 onMouseEnter={() => {
-                  setOpenItemId(item.id);
+                  // Apilado, el hover abriría otro submenú al bajar el mouse hacia el actual.
+                  if (placement === 'side') setOpenItemId(item.id);
                 }}
                 onClick={() => {
                   openSubmenu(item.id);
@@ -213,8 +232,10 @@ export function FilterMenu({
               role="dialog"
               aria-label={openItem.label}
               onKeyDown={handleSubmenuKeyDown}
-              style={{ top: openIndex * ITEM_HEIGHT }}
-              className="absolute left-[222px]"
+              style={placement === 'side' ? { top: openIndex * ITEM_HEIGHT } : undefined}
+              className={
+                placement === 'side' ? 'absolute left-[222px]' : 'absolute top-full right-0 mt-1'
+              }
             >
               {openItem.render({ close: closeAndFocusButton })}
             </div>

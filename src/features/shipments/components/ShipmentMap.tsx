@@ -42,12 +42,9 @@ export function ShipmentMap({ visible, onShowInList }: ShipmentMapProps) {
     .join(';');
 
   return (
-    <div className="relative h-full w-full">
-      <MapContainer
-        center={BUENOS_AIRES}
-        zoom={11}
-        className={cn('h-full w-full', mapStyle === 'dark' && 'map-dark')}
-      >
+    // La clase va en el contenedor: MapContainer solo aplica className al montarse.
+    <div className={cn('relative h-full w-full', mapStyle === 'dark' && 'map-dark')}>
+      <MapContainer center={BUENOS_AIRES} zoom={11} className="h-full w-full">
         <TileLayer url={TILE_URL} attribution={ATTRIBUTION} />
         {shipments.map((shipment) => {
           const selected = shipment.id === selectedId;

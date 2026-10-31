@@ -67,7 +67,7 @@ export function OperationView() {
         role={isDesktop ? undefined : 'tabpanel'}
         aria-labelledby={isDesktop ? undefined : 'tab-list'}
         className={cn(
-          'min-h-0 flex-1 bg-bg lg:w-[402px] lg:flex-none lg:border-r lg:border-line',
+          'relative z-10 min-h-0 flex-1 bg-bg lg:w-[402px] lg:flex-none lg:border-r lg:border-line',
           !showList && 'hidden',
         )}
       >
@@ -84,7 +84,7 @@ export function OperationView() {
         role={isDesktop ? undefined : 'tabpanel'}
         aria-labelledby={isDesktop ? undefined : 'tab-map'}
         aria-label={isDesktop ? 'Mapa de envíos' : undefined}
-        className={cn('relative min-h-0 flex-1', !showMap && 'hidden')}
+        className={cn('relative z-0 min-h-0 flex-1', !showMap && 'hidden')}
       >
         <Suspense
           fallback={
