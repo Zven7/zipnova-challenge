@@ -5,7 +5,6 @@ import { useRef } from 'react';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
-import { cn } from '@/lib/cn';
 import { useMapStyle, type MapStyle } from '../hooks/useMapStyle';
 import { selectFilteredShipments, selectSelectedShipmentId } from '../store/selectors';
 import { focusShipment } from '../store/shipmentsViewSlice';
@@ -15,9 +14,35 @@ import { ShipmentMapController } from './ShipmentMapController';
 import { ShipmentPopup } from './ShipmentPopup';
 
 const BUENOS_AIRES: LatLngTuple = [-34.61, -58.44];
-const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-const ATTRIBUTION =
+const OSM_ATTRIBUTION =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+const ESRI_CANVAS = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas';
+
+type TileConfig = {
+  layers: { url: string; opacity?: number }[];
+  attribution: string;
+  maxNativeZoom: number;
+};
+
+/**
+ * Esri Dark Gray tiene poco detalle y deja que resalten los marcadores; las etiquetas van en una
+ * capa aparte, atenuada para que no compitan con ellos. OSM es el mapa estándar.
+ */
+const tileConfigs: Record<MapStyle, TileConfig> = {
+  dark: {
+    layers: [
+      { url: `${ESRI_CANVAS}/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}` },
+      { url: `${ESRI_CANVAS}/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, opacity: 0.55 },
+    ],
+    attribution: `Tiles &copy; Esri &mdash; Esri, HERE, Garmin, ${OSM_ATTRIBUTION}`,
+    maxNativeZoom: 16,
+  },
+  light: {
+    layers: [{ url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' }],
+    attribution: OSM_ATTRIBUTION,
+    maxNativeZoom: 19,
+  },
+};
 
 const styleOptions: { value: MapStyle; label: string }[] = [
   { value: 'dark', label: 'Oscuro' },
@@ -36,16 +61,26 @@ export function ShipmentMap({ visible, onShowInList }: ShipmentMapProps) {
   const selectedId = useAppSelector(selectSelectedShipmentId);
   const [mapStyle, setMapStyle] = useMapStyle();
   const markerRefs = useRef(new Map<string, LeafletMarker>());
+  const tiles = tileConfigs[mapStyle];
 
   const positionsKey = shipments
     .map(({ destination }) => `${destination.lat},${destination.lng}`)
     .join(';');
 
   return (
-    // La clase va en el contenedor: MapContainer solo aplica className al montarse.
-    <div className={cn('relative h-full w-full', mapStyle === 'dark' && 'map-dark')}>
+    <div className="relative h-full w-full">
       <MapContainer center={BUENOS_AIRES} zoom={11} className="h-full w-full">
-        <TileLayer url={TILE_URL} attribution={ATTRIBUTION} />
+        {tiles.layers.map(({ url, opacity }) => (
+          // TileLayer no actualiza la atribución al cambiar props: la key fuerza a montarlo de nuevo.
+          <TileLayer
+            key={url}
+            url={url}
+            opacity={opacity}
+            attribution={tiles.attribution}
+            maxNativeZoom={tiles.maxNativeZoom}
+            maxZoom={19}
+          />
+        ))}
         {shipments.map((shipment) => {
           const selected = shipment.id === selectedId;
           return (
