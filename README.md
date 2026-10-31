@@ -4,7 +4,7 @@ Herramienta para que un operador logístico tenga una visión general de los env
 
 ## Cómo correrlo
 
-Requiere Node 22.12 o superior (lo exigen Vite 8 y Vitest 5).
+Requiere Node 22.12 o superior (lo exigen Vite 8 y Vitest 5). `.nvmrc` fija la versión que usa la CI.
 
 ```bash
 npm install
@@ -25,6 +25,17 @@ Rutas útiles:
 - **`/#dev`**: página de ejemplos con los componentes del UI Kit en todos sus estados.
 - **`/?simular-error=carga`**: la carga inicial falla, para ver el estado de error con "Reintentar".
 - **`/?simular-error=acciones`**: las acciones (asignar, cambiar estado, cancelar) fallan, para ver el error en el formulario.
+
+## CI/CD
+
+`.github/workflows/ci.yml` corre en cada push a `main`, en cada pull request y a mano:
+
+1. **Calidad**: `npm ci`, formato (Prettier), lint, typecheck, tests y build.
+2. **Deploy a GitHub Pages**: solo en `main` y solo si el paso anterior pasó. Publica el mismo build que se verificó.
+
+GitHub Pages sirve el sitio en `/<repo>/`, así que el build de la CI usa `--base=/<repo>/`. En local la base sigue siendo `/`. Dependabot propone una vez por mes las actualizaciones de las acciones.
+
+Para activarlo en un repo nuevo: **Settings → Pages → Source: GitHub Actions**. Conviene además proteger `main` exigiendo que pase el job de calidad antes de mergear.
 
 ## Qué hace
 
