@@ -3,6 +3,7 @@ import { mockDrivers } from '@/features/drivers/mock';
 import { mockVehicles } from '@/features/vehicles/mock';
 import { isoToDateKey, toDateKey } from '@/lib/date';
 import { createMockShipments } from './mock';
+import { getPairingConflict, getSameDayAssignments } from './rules';
 
 const today = new Date(2026, 9, 31, 8, 0);
 const shipments = createMockShipments(today);
@@ -64,5 +65,14 @@ describe('mock de la operación', () => {
 
   it('cada envío tiene al menos un paquete', () => {
     for (const shipment of shipments) expect(shipment.packages.length).toBeGreaterThan(0);
+  });
+
+  it('respeta un vehículo por conductor y un conductor por vehículo en cada día', () => {
+    for (const shipment of shipments) {
+      const { driverId, vehicleId } = shipment;
+      if (!driverId || !vehicleId) continue;
+      const sameDay = getSameDayAssignments(shipments, shipment);
+      expect(getPairingConflict({ driverId, vehicleId }, sameDay)).toBeUndefined();
+    }
   });
 });

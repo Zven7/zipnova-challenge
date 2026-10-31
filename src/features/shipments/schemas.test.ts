@@ -11,7 +11,11 @@ const firstError = (result: { success: boolean; error?: { issues: { message: str
   result.error?.issues[0]?.message;
 
 describe('createAssignmentSchema', () => {
-  const schema = createAssignmentSchema(['veh-1']);
+  const schema = createAssignmentSchema({
+    busyVehicleIds: ['veh-1'],
+    sameDayAssignments: [{ driverId: 'drv-3', vehicleId: 'veh-3' }],
+    describeConflict: (conflict) => `conflicto ${conflict.kind}`,
+  });
 
   it('exige conductor y vehículo', () => {
     const result = schema.safeParse({ driverId: '', vehicleId: '' });
@@ -22,6 +26,15 @@ describe('createAssignmentSchema', () => {
   it('rechaza un vehículo en tránsito con otro envío', () => {
     const result = schema.safeParse({ driverId: 'drv-1', vehicleId: 'veh-1' });
     expect(firstError(result)).toBe(VEHICLE_BUSY_MESSAGE);
+  });
+
+  it('rechaza un par incoherente con los envíos del día, sobre el campo vehículo', () => {
+    const result = schema.safeParse({ driverId: 'drv-3', vehicleId: 'veh-2' });
+    expect(firstError(result)).toBe('conflicto driver');
+    expect(result.error?.issues[0]?.path).toEqual(['vehicleId']);
+    expect(firstError(schema.safeParse({ driverId: 'drv-2', vehicleId: 'veh-3' }))).toBe(
+      'conflicto vehicle',
+    );
   });
 
   it('acepta una asignación válida', () => {

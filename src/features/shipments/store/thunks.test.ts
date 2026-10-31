@@ -38,15 +38,26 @@ describe('assignShipment', () => {
   it('asigna conductor y vehículo y pasa el envío a asignado', async () => {
     const store = loadedStore();
     const action = await run(
-      store.dispatch(assignShipment({ id: '123445', driverId: 'drv-2', vehicleId: 'veh-4' })),
+      store.dispatch(assignShipment({ id: '123445', driverId: 'drv-4', vehicleId: 'veh-4' })),
     );
 
     expect(action.meta.requestStatus).toBe('fulfilled');
     expect(selectShipmentById(store.getState(), '123445')).toMatchObject({
       status: 'assigned',
-      driverId: 'drv-2',
+      driverId: 'drv-4',
       vehicleId: 'veh-4',
     });
+  });
+
+  it('rechaza un conductor que ese día ya usa otro vehículo', async () => {
+    const store = loadedStore();
+    const action = await run(
+      store.dispatch(assignShipment({ id: '123445', driverId: 'drv-4', vehicleId: 'veh-5' })),
+    );
+
+    expect(action.meta.requestStatus).toBe('rejected');
+    expect(action.payload).toMatch(/^Ese día el conductor ya usa /);
+    expect(selectShipmentById(store.getState(), '123445')?.status).toBe('pending');
   });
 
   it('rechaza un vehículo en tránsito con otro envío', async () => {

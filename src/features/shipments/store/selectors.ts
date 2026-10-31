@@ -6,7 +6,7 @@ import { getShipmentMetrics } from '../metrics';
 import { parseDateKey } from '@/lib/date';
 import { formatDate } from '@/lib/format';
 import { PRIORITY_LABELS, STATUS_LABELS } from '../constants';
-import { getBusyVehicleIds } from '../rules';
+import { getBusyVehicleIds, getSameDayAssignments } from '../rules';
 import type { ActiveFilterChip, Shipment } from '../types';
 import { filterShipments, hasActiveFilters } from './filterShipments';
 import { shipmentsAdapter } from './shipmentsSlice';
@@ -109,4 +109,13 @@ export const selectActiveFilterChips = createSelector(
 export const selectBusyVehicleIds = createSelector(
   [selectAllShipments, (_state: RootState, shipmentId: string) => shipmentId],
   getBusyVehicleIds,
+);
+
+/** Pares conductor–vehículo de los otros envíos del mismo día que `shipmentId`. */
+export const selectSameDayAssignments = createSelector(
+  [
+    selectAllShipments,
+    (state: RootState, shipmentId: string) => selectShipmentById(state, shipmentId),
+  ],
+  (shipments, shipment) => (shipment ? getSameDayAssignments(shipments, shipment) : []),
 );

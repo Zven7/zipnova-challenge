@@ -11,7 +11,10 @@ import {
   canAssign,
   canCancel,
   canTransition,
+  describePairingConflict,
   getBusyVehicleIds,
+  getPairingConflict,
+  getSameDayAssignments,
   VEHICLE_BUSY_MESSAGE,
 } from '../rules';
 import type { Shipment, ShipmentStatus } from '../types';
@@ -65,8 +68,22 @@ export const assignShipment = createAppAsyncThunk(
     if (!shipment || !canAssign(shipment.status)) {
       return rejectWithValue('Este envío ya no se puede asignar.');
     }
-    if (getBusyVehicleIds(getShipments(state), id).includes(vehicleId)) {
+    const shipments = getShipments(state);
+    if (getBusyVehicleIds(shipments, id).includes(vehicleId)) {
       return rejectWithValue(VEHICLE_BUSY_MESSAGE);
+    }
+    const conflict = getPairingConflict(
+      { driverId, vehicleId },
+      getSameDayAssignments(shipments, shipment),
+    );
+    if (conflict) {
+      return rejectWithValue(
+        describePairingConflict(
+          conflict,
+          Object.values(state.drivers.entities),
+          Object.values(state.vehicles.entities),
+        ),
+      );
     }
     return update(id, { driverId, vehicleId, status: 'assigned' });
   },
