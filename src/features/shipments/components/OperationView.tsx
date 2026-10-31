@@ -1,5 +1,10 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useAppDispatch } from '@/app/hooks';
+import { Button } from '@/components/ui/Button';
+import { Dialog } from '@/components/ui/Dialog';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { useRetryableLazy } from '@/components/ui/useRetryableLazy';
 import { useMediaQuery } from '@/components/ui/useMediaQuery';
 import { cn } from '@/lib/cn';
 import { Toaster } from '@/features/notifications/Toaster';
@@ -8,15 +13,13 @@ import { fetchOperationData } from '../store/thunks';
 import { ShipmentsPanel } from './ShipmentsPanel';
 
 // Leaflet va en un chunk aparte para que la lista aparezca antes.
-const ShipmentMap = lazy(() =>
-  import('./ShipmentMap').then((module) => ({ default: module.ShipmentMap })),
-);
+const loadShipmentMap = () =>
+  import('./ShipmentMap').then((module) => ({ default: module.ShipmentMap }));
 // Los formularios (React Hook Form + Zod) solo se descargan al abrir las acciones.
-const ShipmentActionsDialog = lazy(() =>
+const loadActionsDialog = () =>
   import('./actions/ShipmentActionsDialog').then((module) => ({
     default: module.ShipmentActionsDialog,
-  })),
-);
+  }));
 
 type Tab = 'list' | 'map';
 
@@ -31,10 +34,16 @@ export function OperationView() {
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const [tab, setTab] = useState<Tab>('list');
   const [actionsShipmentId, setActionsShipmentId] = useState<string>();
+  const [ShipmentMap, retryShipmentMap] = useRetryableLazy(loadShipmentMap);
+  const [ShipmentActionsDialog, retryActionsDialog] = useRetryableLazy(loadActionsDialog);
 
   useEffect(() => {
     void dispatch(fetchOperationData());
   }, [dispatch]);
+
+  function closeActions() {
+    setActionsShipmentId(undefined);
+  }
 
   const showList = isDesktop || tab === 'list';
   const showMap = isDesktop || tab === 'map';
@@ -92,30 +101,52 @@ export function OperationView() {
         aria-label={isDesktop ? 'Mapa de envíos' : undefined}
         className={cn('relative z-0 min-h-0 flex-1', !showMap && 'hidden')}
       >
-        <Suspense
-          fallback={
-            <div aria-label="Cargando mapa" className="h-full w-full animate-pulse bg-surface" />
-          }
+        <ErrorBoundary
+          onReset={retryShipmentMap}
+          fallback={(reset) => (
+            <div className="flex h-full items-center justify-center p-6">
+              <EmptyState
+                title="No pudimos cargar el mapa."
+                description="La lista sigue funcionando. Revisa tu conexión e intenta de nuevo."
+                action={<Button onClick={reset}>Reintentar</Button>}
+              />
+            </div>
+          )}
         >
-          <ShipmentMap
-            visible={showMap}
-            onShowInList={(id) => {
-              dispatch(focusShipment(id));
-              setTab('list');
-            }}
-          />
-        </Suspense>
+          <Suspense
+            fallback={
+              <div aria-label="Cargando mapa" className="h-full w-full animate-pulse bg-surface" />
+            }
+          >
+            <ShipmentMap
+              visible={showMap}
+              onShowInList={(id) => {
+                dispatch(focusShipment(id));
+                setTab('list');
+              }}
+            />
+          </Suspense>
+        </ErrorBoundary>
       </section>
 
       {actionsShipmentId && (
-        <Suspense fallback={null}>
-          <ShipmentActionsDialog
-            id={actionsShipmentId}
-            onClose={() => {
-              setActionsShipmentId(undefined);
-            }}
-          />
-        </Suspense>
+        <ErrorBoundary
+          onReset={retryActionsDialog}
+          fallback={(reset) => (
+            <Dialog title="No pudimos abrir las acciones" onClose={closeActions}>
+              <p className="text-small font-light text-fg-soft">
+                Revisa tu conexión e intenta de nuevo.
+              </p>
+              <Button onClick={reset} className="self-end">
+                Reintentar
+              </Button>
+            </Dialog>
+          )}
+        >
+          <Suspense fallback={null}>
+            <ShipmentActionsDialog id={actionsShipmentId} onClose={closeActions} />
+          </Suspense>
+        </ErrorBoundary>
       )}
       <Toaster />
     </main>
