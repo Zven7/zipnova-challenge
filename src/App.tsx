@@ -1,23 +1,29 @@
-import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from './app/hooks';
-import { selectLoadStatus, selectResultCount } from './features/shipments/store/selectors';
-import { fetchOperationData } from './features/shipments/store/thunks';
+import { lazy, Suspense, useSyncExternalStore } from 'react';
+import { OperationView } from './features/shipments/components/OperationView';
+
+const ExamplesPage = lazy(() =>
+  import('./dev/ExamplesPage').then((module) => ({ default: module.ExamplesPage })),
+);
+
+function subscribeToHash(onChange: () => void) {
+  window.addEventListener('hashchange', onChange);
+  return () => {
+    window.removeEventListener('hashchange', onChange);
+  };
+}
+
+const getHash = () => window.location.hash;
 
 export function App() {
-  const dispatch = useAppDispatch();
-  const loadStatus = useAppSelector(selectLoadStatus);
-  const { visible, total } = useAppSelector(selectResultCount);
+  const hash = useSyncExternalStore(subscribeToHash, getHash);
 
-  useEffect(() => {
-    void dispatch(fetchOperationData());
-  }, [dispatch]);
+  if (hash === '#dev') {
+    return (
+      <Suspense fallback={null}>
+        <ExamplesPage />
+      </Suspense>
+    );
+  }
 
-  return (
-    <main className="flex h-full flex-col items-center justify-center gap-2">
-      <h1 className="text-heading font-semibold">Envíos en operación</h1>
-      <p className="text-fg-soft">
-        {loadStatus === 'succeeded' ? `${visible} de ${total} envíos` : 'Cargando envíos…'}
-      </p>
-    </main>
-  );
+  return <OperationView />;
 }
