@@ -21,7 +21,7 @@ type DatePickerProps = {
   className?: string;
 };
 
-const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sab'];
+const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const WEEKDAY_NAMES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 
 const monthFormatter = new Intl.DateTimeFormat('es-AR', { month: 'long', year: 'numeric' });

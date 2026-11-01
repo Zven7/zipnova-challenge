@@ -47,6 +47,7 @@ export function ShipmentCard({ id, onLocate, onOpenActions, ref }: ShipmentCardP
     <article
       ref={ref}
       aria-labelledby={titleId}
+      aria-current={selected ? 'true' : undefined}
       className={cn(
         'overflow-hidden rounded-md bg-surface-raised',
         selected && 'outline-1 outline-primary',
@@ -63,7 +64,6 @@ export function ShipmentCard({ id, onLocate, onOpenActions, ref }: ShipmentCardP
           <button
             type="button"
             aria-label={`Ubicar la entrega ${shipment.id} en el mapa`}
-            aria-pressed={selected}
             onClick={() => {
               dispatch(selectShipment(id));
               onLocate();

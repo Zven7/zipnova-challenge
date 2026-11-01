@@ -172,7 +172,7 @@ export function MultiSelect<T extends string>({
             role="combobox"
             autoComplete="off"
             aria-expanded={open}
-            aria-controls={listId}
+            aria-controls={open ? listId : undefined}
             aria-autocomplete="list"
             aria-activedescendant={open && activeIndex >= 0 ? optionId(activeIndex) : undefined}
             aria-describedby={hint ? hintId : undefined}

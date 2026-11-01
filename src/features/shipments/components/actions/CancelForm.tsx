@@ -49,6 +49,7 @@ export function CancelForm({ shipment, onDone }: CancelFormProps) {
           <TextArea
             {...control}
             {...register('reason')}
+            maxLength={REASON_MAX_LENGTH}
             placeholder="Ej.: el cliente reprogramó la entrega"
           />
         )}

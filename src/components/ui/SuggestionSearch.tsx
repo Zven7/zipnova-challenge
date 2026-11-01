@@ -76,7 +76,7 @@ export function SuggestionSearch({
           autoComplete="off"
           aria-label={label}
           aria-expanded={results.length > 0}
-          aria-controls={listId}
+          aria-controls={results.length > 0 ? listId : undefined}
           aria-autocomplete="list"
           aria-activedescendant={activeIndex >= 0 ? `${id}-option-${activeIndex}` : undefined}
           value={query}
