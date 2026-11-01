@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run format:check && npm run lint && npm test && npm run build && npm run build-storybook",
+  "buildCommand": "npm run lint && npm test && npm run build && npm run build-storybook",
   "outputDirectory": "dist",
   "redirects": [{ "source": "/storybook", "destination": "/storybook/", "permanent": true }],
   "headers": [

@@ -91,7 +91,7 @@ src/
 
 ## CI/CD
 
-GitHub Actions corre formato, lint, typecheck, tests, build y build de Storybook en cada push y pull request. El deploy lo hace Vercel, y su comando de build (`vercel.json`) vuelve a correr los mismos checks, así que un deploy no sale si algo falla. Storybook se publica en `/storybook/`, con una CSP propia porque usa scripts inline. `vercel.json` también define las cabeceras de seguridad (CSP, `frame-ancestors`, `Referrer-Policy`) y la caché inmutable de los assets con hash.
+GitHub Actions corre formato, lint, typecheck, tests, build y build de Storybook en cada push y pull request. El deploy lo hace Vercel, y su comando de build (`vercel.json`) vuelve a correr lint, tests, typecheck y build, así que un deploy no sale si algo falla. El formato se controla solo en la CI, porque el build de Vercel genera archivos propios (`.vercel/`). Storybook se publica en `/storybook/`, con una CSP propia porque usa scripts inline. `vercel.json` también define las cabeceras de seguridad (CSP, `frame-ancestors`, `Referrer-Policy`) y la caché inmutable de los assets con hash.
 
 ## Próximos pasos
 

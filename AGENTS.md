@@ -173,7 +173,7 @@ Mock: **20 envíos, 5 conductores, 5 vehículos**. Condiciones:
 - Tests con Vitest: funciones puras de `lib/`, reglas y selectores, más tests de componentes con Testing Library para los flujos de teclado y los formularios. No hace falta testear cada componente.
 - Sin `console.log` ni código comentado en la entrega.
 - Commits chicos y con mensajes claros (conventional commits).
-- La CI (GitHub Actions) corre formato, lint, typecheck, tests y build en cada push y PR. El deploy es en Vercel y su build corre los mismos checks, así que solo sale si todo pasa.
+- La CI (GitHub Actions) corre formato, lint, typecheck, tests y build en cada push y PR. El deploy es en Vercel y su build corre lint, tests, typecheck y build, así que solo sale si todo pasa (el formato se controla en la CI).
 
 ## 9. Entregables
 
