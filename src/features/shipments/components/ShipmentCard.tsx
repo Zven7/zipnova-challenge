@@ -94,7 +94,8 @@ export function ShipmentCard({ id, onLocate, onOpenActions, ref }: ShipmentCardP
 
       {expanded && (
         <div id={bodyId} className="flex flex-col gap-2 bg-surface px-3 pt-2 pb-3">
-          <dl className="flex items-center justify-between gap-4 py-1">
+          {/* Como en el kit: 4 columnas iguales sin gap (4 × 88,5 px en una card de 378). */}
+          <dl className="flex items-center justify-between py-1">
             {metricItems.map((item, index) => (
               <div
                 key={item.label}

@@ -85,13 +85,14 @@ export function OperationView() {
         ))}
       </div>
 
+      {/* 403 px: con 1 px de borde y 12 px de padding por lado, la card mide 378 como en el kit. */}
       <section
         id="panel-list"
         role={isDesktop ? undefined : 'tabpanel'}
         aria-labelledby={isDesktop ? undefined : 'tab-list'}
         aria-label={isDesktop ? 'Lista de envíos' : undefined}
         className={cn(
-          'relative z-10 min-h-0 flex-1 bg-bg lg:w-[402px] lg:flex-none lg:border-r lg:border-line',
+          'relative z-10 min-h-0 flex-1 bg-bg lg:w-[403px] lg:flex-none lg:border-r lg:border-line',
           !showList && 'hidden',
         )}
       >

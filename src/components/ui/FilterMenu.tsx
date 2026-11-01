@@ -33,9 +33,18 @@ type FilterMenuProps = {
 };
 
 const ITEM_HEIGHT = 32;
+const MENU_PADDING = 4;
 const MENU_WIDTH = 224;
 /** Lugar para el submenú más ancho (date picker) a la derecha del menú, más un margen. */
 const SUBMENU_ROOM = 300;
+
+/**
+ * Como en el kit: el primer submenú arranca a la altura del menú y los siguientes se alinean con
+ * su fila (que incluye el padding del menú). En el kit, Dirección queda en +0 y Fecha en +36.
+ */
+function getSubmenuTop(index: number): number {
+  return index === 0 ? 0 : MENU_PADDING + index * ITEM_HEIGHT;
+}
 
 /**
  * "side": como el kit, el submenú se abre al costado del menú.
@@ -232,7 +241,7 @@ export function FilterMenu({
               role="dialog"
               aria-label={openItem.label}
               onKeyDown={handleSubmenuKeyDown}
-              style={placement === 'side' ? { top: openIndex * ITEM_HEIGHT } : undefined}
+              style={placement === 'side' ? { top: getSubmenuTop(openIndex) } : undefined}
               className={
                 placement === 'side' ? 'absolute left-[222px]' : 'absolute top-full right-0 mt-1'
               }
