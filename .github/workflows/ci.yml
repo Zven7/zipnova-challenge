@@ -43,3 +43,6 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Build de Storybook
+        run: npm run build-storybook
