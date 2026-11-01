@@ -1,24 +1,34 @@
 // @vitest-environment jsdom
 import { screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
-import { createLoadedStore } from '@/test/loadedStore';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createLoadedStore, TEST_TODAY } from '@/test/loadedStore';
 import { renderWithStore } from '@/test/renderWithStore';
 import { selectShipmentById } from '../../store/selectors';
 import { AssignmentForm } from './AssignmentForm';
 
 // 123445 es un envío pendiente con entrega hoy; ese día ya están en uso los cinco pares del mock.
-function setup() {
+// El formulario calcula "hoy" con el reloj: se fija en el mismo día que el mock.
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(TEST_TODAY);
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+function setup(id = '123445') {
   const onDone = vi.fn();
   const store = createLoadedStore();
-  const shipment = selectShipmentById(store.getState(), '123445');
-  if (!shipment) throw new Error('Falta el envío 123445 en el mock');
+  const shipment = selectShipmentById(store.getState(), id);
+  if (!shipment) throw new Error(`Falta el envío ${id} en el mock`);
   const rendered = renderWithStore(<AssignmentForm shipment={shipment} onDone={onDone} />, store);
   return {
     ...rendered,
     onDone,
     driver: screen.getByRole('combobox', { name: 'Conductor' }),
     vehicle: screen.getByRole('combobox', { name: 'Vehículo' }),
-    submit: screen.getByRole('button', { name: 'Asignar' }),
+    submit: screen.getByRole('button', { name: /^(Asignar|Reasignar)$/ }),
   };
 }
 
@@ -76,5 +86,20 @@ describe('AssignmentForm', () => {
       driverId: 'drv-4',
       vehicleId: 'veh-4',
     });
+  });
+
+  it('al reasignar, el botón espera a que cambie el conductor o el vehículo', async () => {
+    // 123491 ya está asignado a Valeria Sosa con la Sprinter.
+    const { user, driver, vehicle, submit } = setup('123491');
+    expect(submit).toHaveTextContent('Reasignar');
+    expect(submit).toBeDisabled();
+
+    await user.selectOptions(driver, 'drv-5');
+    expect(submit).toBeEnabled();
+
+    // Volver al par original deja el formulario sin cambios.
+    await user.selectOptions(driver, 'drv-4');
+    await user.selectOptions(vehicle, 'veh-4');
+    expect(submit).toBeDisabled();
   });
 });

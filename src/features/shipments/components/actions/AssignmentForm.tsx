@@ -48,7 +48,7 @@ export function AssignmentForm({ shipment, onDone }: AssignmentFormProps) {
     setError,
     setValue,
     control,
-    formState: { errors, isSubmitting, isSubmitted },
+    formState: { errors, isSubmitting, isSubmitted, isDirty },
   } = useForm<AssignmentValues>({
     resolver: zodResolver(schema),
     defaultValues: { driverId: shipment.driverId ?? '', vehicleId: shipment.vehicleId ?? '' },
@@ -84,7 +84,10 @@ export function AssignmentForm({ shipment, onDone }: AssignmentFormProps) {
               onChange: (event: { target: { value: string } }) => {
                 const dayVehicleId = getDayVehicleId(event.target.value, sameDayAssignments);
                 if (dayVehicleId && !busyVehicleIds.includes(dayVehicleId)) {
-                  setValue('vehicleId', dayVehicleId, { shouldValidate: isSubmitted });
+                  setValue('vehicleId', dayVehicleId, {
+                    shouldValidate: isSubmitted,
+                    shouldDirty: true,
+                  });
                 }
               },
             })}
@@ -119,7 +122,12 @@ export function AssignmentForm({ shipment, onDone }: AssignmentFormProps) {
         )}
       </FormField>
       <FormError message={errors.root?.message} />
-      <Button type="submit" disabled={isSubmitting} className="self-end">
+      {/* Reasignar el mismo par no cambia nada: el botón espera a que se elija otro. */}
+      <Button
+        type="submit"
+        disabled={isSubmitting || (isReassignment && !isDirty)}
+        className="self-end"
+      >
         {isSubmitting ? 'Guardando…' : isReassignment ? 'Reasignar' : 'Asignar'}
       </Button>
     </form>
