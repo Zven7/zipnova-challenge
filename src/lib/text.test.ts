@@ -20,6 +20,17 @@ describe('includesText', () => {
     expect(includesText('Palermo', '   ')).toBe(true);
   });
 
+  it('sin ñ en la búsqueda, la ñ del texto cuenta como n', () => {
+    expect(includesText('España', 'espana')).toBe(true);
+  });
+
+  it('con ñ en la búsqueda, solo coincide con ñ', () => {
+    expect(includesText('Peña', 'ñ')).toBe(true);
+    expect(includesText('PEÑA', 'peña')).toBe(true);
+    expect(includesText('Pena', 'peña')).toBe(false);
+    expect(includesText('Martínez', 'ñ')).toBe(false);
+  });
+
   it('devuelve false cuando no hay coincidencia', () => {
     expect(includesText('Palermo', 'Belgrano')).toBe(false);
   });
