@@ -3,20 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Panel de operación de envíos" />
-    <link rel="icon" href="data:," />
+    <meta
+      name="description"
+      content="Panel de operación de envíos: listado, mapa, filtros y acciones."
+    />
+    <meta name="theme-color" content="#172937" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Envíos en operación" />
+    <meta
+      property="og:description"
+      content="Panel de operación de envíos: listado, mapa, filtros y acciones."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://server.arcgisonline.com" />
-    <!-- La fuente se carga sin bloquear el render; hasta que llega se usa la de sistema (display=swap). -->
+    <!-- Se precarga sin bloquear el render; main.tsx la aplica. Hasta que llega se usa la de sistema. -->
     <link
+      id="font-stylesheet"
       rel="preload"
       as="style"
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap"
-      onload="
-        this.onload = null;
-        this.rel = 'stylesheet';
-      "
     />
     <title>Envíos en operación</title>
   </head>
