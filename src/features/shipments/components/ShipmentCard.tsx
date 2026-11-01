@@ -47,6 +47,8 @@ export function ShipmentCard({ id, onLocate, onOpenActions, ref }: ShipmentCardP
     <article
       ref={ref}
       aria-labelledby={titleId}
+      data-shipment-id={id}
+      tabIndex={-1}
       aria-current={selected ? 'true' : undefined}
       className={cn(
         'overflow-hidden rounded-md bg-surface-raised',
@@ -113,20 +115,20 @@ export function ShipmentCard({ id, onLocate, onOpenActions, ref }: ShipmentCardP
           <hr className="border-line" />
 
           <dl className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5 text-tiny font-light">
-            <dt className="text-fg-muted">Cliente</dt>
+            <dt className="text-fg-soft">Cliente</dt>
             <dd className="text-fg">{shipment.customer}</dd>
-            <dt className="text-fg-muted">Destino</dt>
+            <dt className="text-fg-soft">Destino</dt>
             <dd className="text-fg">{shipment.destination.address}</dd>
-            <dt className="text-fg-muted">Entrega estimada</dt>
+            <dt className="text-fg-soft">Entrega estimada</dt>
             <dd className="text-fg">{formatDelivery(shipment.estimatedDelivery)}</dd>
-            <dt className="text-fg-muted">Estado</dt>
+            <dt className="text-fg-soft">Estado</dt>
             <dd className="flex flex-wrap items-center gap-2 text-fg">
               <ShipmentStatusBadge status={shipment.status} />
               <span>Prioridad {PRIORITY_LABELS[shipment.priority].toLowerCase()}</span>
             </dd>
             {shipment.cancellationReason && (
               <>
-                <dt className="text-fg-muted">Motivo</dt>
+                <dt className="text-fg-soft">Motivo</dt>
                 <dd className="text-fg">{shipment.cancellationReason}</dd>
               </>
             )}

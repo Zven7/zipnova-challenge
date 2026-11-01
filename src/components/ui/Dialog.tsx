@@ -12,13 +12,18 @@ type DialogProps = {
 export function Dialog({ title, description, onClose, children }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  const descriptionId = useId();
 
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
+    // El navegador devuelve el foco solo si el <dialog> sigue en el DOM al cerrarse; acá se cierra
+    // al desmontarse, así que se devuelve a mano al elemento que lo abrió.
+    const opener = document.activeElement;
     dialog.showModal();
     return () => {
       dialog.close();
+      if (opener instanceof HTMLElement && opener.isConnected) opener.focus();
     };
   }, []);
 
@@ -26,6 +31,7 @@ export function Dialog({ title, description, onClose, children }: DialogProps) {
     <dialog
       ref={ref}
       aria-labelledby={titleId}
+      aria-describedby={description ? descriptionId : undefined}
       onCancel={(event) => {
         event.preventDefault();
         onClose();
@@ -41,7 +47,7 @@ export function Dialog({ title, description, onClose, children }: DialogProps) {
             <h2 id={titleId} className="text-body-loose font-semibold">
               {title}
             </h2>
-            {description}
+            {description && <div id={descriptionId}>{description}</div>}
           </div>
           <button
             type="button"

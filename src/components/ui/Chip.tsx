@@ -12,6 +12,7 @@ export function Chip({ label, onRemove }: ChipProps) {
       <span className="truncate">{label}</span>
       <button
         type="button"
+        data-chip-remove
         aria-label={`Quitar filtro ${label}`}
         onClick={onRemove}
         className="flex size-4 shrink-0 items-center justify-center rounded-full text-fg-muted hover:bg-surface-raised hover:text-fg"

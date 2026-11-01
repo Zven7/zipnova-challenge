@@ -16,6 +16,7 @@ import {
   setStatuses,
 } from '../store/shipmentsViewSlice';
 import { PRIORITIES, SHIPMENT_STATUSES, type Priority, type ShipmentStatus } from '../types';
+import { SHIPMENT_SEARCH_ID } from './searchFocus';
 
 const statusOptions: SelectOption<ShipmentStatus>[] = SHIPMENT_STATUSES.map((value) => ({
   value,
@@ -76,6 +77,7 @@ export function ShipmentFilters() {
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <SearchInput
+          id={SHIPMENT_SEARCH_ID}
           label="Buscar por número, seguimiento, cliente o dirección"
           placeholder="Buscar por número, cliente o dirección"
           value={filters.query}

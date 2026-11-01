@@ -85,7 +85,7 @@ export function StatusForm({ shipment, onDone }: StatusFormProps) {
               />
               {STATUS_LABELS[status]}
               {status === shipment.status && (
-                <span className="ml-auto text-tiny text-fg-muted">Estado actual</span>
+                <span className="ml-auto text-tiny text-fg-soft">Estado actual</span>
               )}
               {index < currentIndex && <span className="ml-auto text-tiny">Completado</span>}
             </label>

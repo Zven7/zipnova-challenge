@@ -1,7 +1,9 @@
-import { useId } from 'react';
+import { useId, useRef } from 'react';
 import { Icon } from './Icon';
 
 type SearchInputProps = {
+  /** Id del input, para poder enfocarlo desde afuera. */
+  id?: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
@@ -9,14 +11,23 @@ type SearchInputProps = {
 };
 
 /** Buscador de texto libre con el estilo del input del kit (píldora de 38px). */
-export function SearchInput({ label, value, onChange, placeholder = 'Buscar' }: SearchInputProps) {
-  const id = useId();
+export function SearchInput({
+  id: idProp,
+  label,
+  value,
+  onChange,
+  placeholder = 'Buscar',
+}: SearchInputProps) {
+  const generatedId = useId();
+  const id = idProp ?? generatedId;
+  const inputRef = useRef<HTMLInputElement>(null);
   return (
     <div className="flex h-[38px] min-w-0 flex-1 items-center gap-3 rounded-full border border-line bg-surface px-4 has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-primary">
       <label htmlFor={id} className="sr-only">
         {label}
       </label>
       <input
+        ref={inputRef}
         id={id}
         type="search"
         value={value}
@@ -34,6 +45,8 @@ export function SearchInput({ label, value, onChange, placeholder = 'Buscar' }: 
           aria-label="Borrar búsqueda"
           onClick={() => {
             onChange('');
+            // El botón desaparece al vaciar el campo: el foco pasa al input.
+            inputRef.current?.focus();
           }}
           className="shrink-0 rounded-xs text-fg"
         >

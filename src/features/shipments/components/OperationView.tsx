@@ -63,12 +63,21 @@ export function OperationView() {
             role="tab"
             aria-selected={tab === id}
             aria-controls={`panel-${id}`}
+            tabIndex={tab === id ? 0 : -1}
             onClick={() => {
               setTab(id);
             }}
+            onKeyDown={(event) => {
+              // Patrón de pestañas: las flechas pasan a la otra pestaña.
+              if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+              event.preventDefault();
+              const next = id === 'list' ? 'map' : 'list';
+              setTab(next);
+              document.getElementById(`tab-${next}`)?.focus();
+            }}
             className={cn(
               'h-8 flex-1 rounded-full text-small font-semibold transition-colors',
-              tab === id ? 'bg-surface-raised text-fg' : 'text-fg-muted hover:text-fg',
+              tab === id ? 'bg-surface-raised text-fg' : 'text-fg-soft hover:text-fg',
             )}
           >
             {label}
@@ -120,9 +129,16 @@ export function OperationView() {
           >
             <ShipmentMap
               visible={showMap}
+              focusPopupOnLocate={!isDesktop}
               onShowInList={(id) => {
                 dispatch(focusShipment(id));
                 setTab('list');
+                // El botón del popup deja de verse: el foco pasa a la card (ya renderizada).
+                requestAnimationFrame(() => {
+                  document
+                    .querySelector<HTMLElement>(`[data-shipment-id="${id}"]`)
+                    ?.focus({ preventScroll: true });
+                });
               }}
             />
           </Suspense>

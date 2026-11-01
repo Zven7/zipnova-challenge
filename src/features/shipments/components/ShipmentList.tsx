@@ -10,6 +10,7 @@ import {
 import { clearFilters } from '../store/shipmentsViewSlice';
 import { fetchOperationData } from '../store/thunks';
 import { ShipmentCard } from './ShipmentCard';
+import { focusShipmentSearch } from './searchFocus';
 
 type ShipmentListProps = {
   onLocate: () => void;
@@ -63,6 +64,7 @@ export function ShipmentList({ onLocate, onOpenActions, registerCard }: Shipment
           <Button
             variant="secondary"
             onClick={() => {
+              focusShipmentSearch();
               dispatch(clearFilters());
             }}
           >

@@ -57,6 +57,36 @@ describe('ShipmentsPanel', () => {
     expect(screen.getByText('20 de 20 envíos')).toBeInTheDocument();
   });
 
+  it('al quitar un chip el foco pasa al siguiente, y al buscador cuando no quedan', async () => {
+    const { user } = setup();
+    await user.click(screen.getByRole('combobox', { name: 'Estado' }));
+    await user.click(screen.getByRole('option', { name: 'Pendiente' }));
+    await user.click(screen.getByRole('option', { name: 'Asignado' }));
+    await user.keyboard('{Escape}');
+
+    const chips = screen.getByRole('group', { name: 'Filtros activos' });
+    await user.click(
+      within(chips).getByRole('button', { name: 'Quitar filtro Estado: Pendiente' }),
+    );
+    expect(
+      within(chips).getByRole('button', { name: 'Quitar filtro Estado: Asignado' }),
+    ).toHaveFocus();
+
+    await user.keyboard('{Enter}');
+    expect(screen.getByRole('searchbox', { name: /^Buscar por número/ })).toHaveFocus();
+  });
+
+  it('"Limpiar filtros" del estado vacío deja el foco en el buscador', async () => {
+    const { user } = setup();
+    const search = screen.getByRole('searchbox', { name: /^Buscar por número/ });
+    await user.type(search, 'zzzz');
+    const emptyState = screen.getByText('Ningún envío coincide con los filtros').parentElement;
+    if (!emptyState) throw new Error('Falta el estado vacío');
+
+    await user.click(within(emptyState).getByRole('button', { name: 'Limpiar filtros' }));
+    expect(search).toHaveFocus();
+  });
+
   it('"Ubicar en el mapa" selecciona el envío desde la lista', async () => {
     const { user, store, onLocate } = setup();
     await user.click(screen.getByRole('button', { name: 'Ubicar la entrega 123445 en el mapa' }));

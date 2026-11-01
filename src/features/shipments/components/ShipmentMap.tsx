@@ -52,10 +52,12 @@ const styleOptions: { value: MapStyle; label: string }[] = [
 type ShipmentMapProps = {
   /** Si el mapa está a la vista (en mobile vive en una pestaña). */
   visible: boolean;
+  /** En mobile la lista queda oculta al abrir un popup: el foco pasa al popup para no perderse. */
+  focusPopupOnLocate: boolean;
   onShowInList: (id: string) => void;
 };
 
-export function ShipmentMap({ visible, onShowInList }: ShipmentMapProps) {
+export function ShipmentMap({ visible, focusPopupOnLocate, onShowInList }: ShipmentMapProps) {
   const dispatch = useAppDispatch();
   const shipments = useAppSelector(selectFilteredShipments);
   const selectedId = useAppSelector(selectSelectedShipmentId);
@@ -102,7 +104,11 @@ export function ShipmentMap({ visible, onShowInList }: ShipmentMapProps) {
               }}
             >
               <Popup>
-                <ShipmentPopup shipment={shipment} onShowInList={onShowInList} />
+                <ShipmentPopup
+                  shipment={shipment}
+                  onShowInList={onShowInList}
+                  autoFocus={focusPopupOnLocate}
+                />
               </Popup>
             </Marker>
           );

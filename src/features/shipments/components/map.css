@@ -48,8 +48,10 @@
   color: theme('colors.fg.muted');
 }
 
+/* Subrayado: el color solo no alcanza para distinguir los links del texto que los rodea. */
 .leaflet-container .leaflet-control-attribution a {
   color: theme('colors.fg.soft');
+  text-decoration: underline;
 }
 
 .leaflet-marker-icon:focus-visible {
