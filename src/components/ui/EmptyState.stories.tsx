@@ -21,8 +21,8 @@ type Story = StoryObj<typeof meta>;
 export const SinResultados: Story = {
   name: 'Sin resultados',
   args: {
-    title: 'No hay envíos que coincidan con los filtros.',
-    description: 'Prueba con otros filtros o límpialos para ver todos los envíos.',
+    title: 'Ningún envío coincide con los filtros',
+    description: 'Prueba con otra búsqueda o quita algunos filtros.',
     action: (
       <Button variant="secondary" onClick={fn()}>
         Limpiar filtros
