@@ -36,6 +36,7 @@ El objetivo es resolver el flujo principal de forma **clara y mantenible**, no c
 | Mapa        | Leaflet + `react-leaflet`, con tiles que no requieran API key                                      |
 | Íconos      | Los SVG del kit de Figma; `lucide-react` solo para lo que el kit no define                         |
 | Calidad     | ESLint + Prettier configurados, scripts `lint`, `typecheck`, `test`, `build`                       |
+| Componentes | Storybook (`npm run storybook`), publicado en `/storybook/`                                        |
 
 No agregues otras dependencias sin justificarlo en el plan.
 
@@ -62,8 +63,7 @@ src/
     vehicles/
     notifications/      # toasts
   lib/                  # utilidades puras (formateo de fechas, geografía)
-  dev/                  # página de ejemplos del kit (#dev)
-  test/                 # setup de Vitest y helpers de render
+  test/                 # setup de Vitest, helpers de render y store cargado
   App.tsx
   main.tsx
 ```
@@ -162,7 +162,7 @@ Mock: **20 envíos, 5 conductores, 5 vehículos**. Condiciones:
 
 - Se parte del UI Kit de Figma enlazado en `CHALLENGE.md`. No improvises el estilo; si falta algo, pedímelo.
 - Extraé los tokens (colores, tipografía, radios, espaciados, sombras) al `tailwind.config` antes de construir componentes.
-- Cada componente del kit se implementa como componente reutilizable con **todos sus estados** documentados en un ejemplo simple (puede ser una página `/dev` o un archivo `examples`).
+- Cada componente del kit se implementa como componente reutilizable con **todos sus estados** documentados en Storybook (`*.stories.tsx` junto al componente). En el sidebar, la sección "Kit de Figma" va separada de "Otros componentes".
 - Layout sugerido: panel izquierdo con búsqueda, filtros y lista; mapa a la derecha. En pantallas chicas, mapa y lista como pestañas.
 
 ## 8. Calidad y accesibilidad

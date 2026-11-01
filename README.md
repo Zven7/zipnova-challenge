@@ -19,10 +19,11 @@ npm run dev
 | `npm run lint`      | ESLint, falla con cualquier warning |
 | `npm test`          | Tests unitarios y de componentes    |
 | `npm run format`    | Prettier                            |
+| `npm run storybook` | Storybook con los componentes       |
 
 Rutas útiles:
 
-- **`/#dev`**: los componentes del UI Kit en todos sus estados.
+- **`/storybook/`** (en el deploy) o **`npm run storybook`** (local): los componentes en todos sus estados. La sección **Kit de Figma** tiene los tres componentes que pide el enunciado; **Otros componentes**, los de apoyo.
 - **`/?simular-error=carga`** y **`/?simular-error=acciones`**: fuerzan el error de la carga inicial o de las acciones, para ver esos estados.
 
 ## Funcionalidades
@@ -36,7 +37,7 @@ Rutas útiles:
 
 ## Stack
 
-React 19, TypeScript estricto, Vite, Tailwind CSS, Redux Toolkit, React Hook Form + Zod, Leaflet (`react-leaflet`), Vitest y Testing Library.
+React 19, TypeScript estricto, Vite, Tailwind CSS, Redux Toolkit, React Hook Form + Zod, Leaflet (`react-leaflet`), Vitest, Testing Library y Storybook.
 
 ## Estructura
 
@@ -56,15 +57,14 @@ src/
     vehicles/          5 vehículos
     notifications/     toasts
   lib/                 utilidades puras: fechas, formato, texto, geografía
-  dev/                 página de ejemplos (#dev)
-  test/                setup de tests
+  test/                setup de tests y store cargado para tests y stories
 ```
 
 `components/ui` no importa nada de `features/`.
 
 ## Decisiones técnicas
 
-**Diseño.** Los tokens (colores, tipografía, radios y sombras) y los íconos salen del UI Kit de Figma y viven en `tailwind.config.ts` y `components/ui/iconData.tsx`. Los componentes del kit están hechos a mano para respetar su diseño y sus estados; `lucide-react` se usa solo para lo que el kit no define.
+**Diseño.** Los tokens (colores, tipografía, radios y sombras) y los íconos salen del UI Kit de Figma y viven en `tailwind.config.ts` y `components/ui/iconData.tsx`. Los componentes del kit están hechos a mano para respetar su diseño y sus estados; `lucide-react` se usa solo para lo que el kit no define. Cada estado del kit tiene su story en Storybook, junto al componente (`*.stories.tsx`).
 
 **Estado.** Envíos, conductores y vehículos están normalizados con `createEntityAdapter`. Los filtros y la selección viven en un slice aparte. La lista, el contador y el mapa consumen el mismo selector memoizado (`selectFilteredShipments`), así que no pueden mostrar cosas distintas.
 
@@ -91,7 +91,7 @@ src/
 
 ## CI/CD
 
-GitHub Actions corre formato, lint, typecheck, tests y build en cada push y pull request. El deploy lo hace Vercel, y su comando de build (`vercel.json`) vuelve a correr los mismos checks, así que un deploy no sale si algo falla. `vercel.json` también define las cabeceras de seguridad (CSP, `frame-ancestors`, `Referrer-Policy`) y la caché inmutable de los assets con hash.
+GitHub Actions corre formato, lint, typecheck, tests, build y build de Storybook en cada push y pull request. El deploy lo hace Vercel, y su comando de build (`vercel.json`) vuelve a correr los mismos checks, así que un deploy no sale si algo falla. Storybook se publica en `/storybook/`, con una CSP propia porque usa scripts inline. `vercel.json` también define las cabeceras de seguridad (CSP, `frame-ancestors`, `Referrer-Policy`) y la caché inmutable de los assets con hash.
 
 ## Próximos pasos
 
