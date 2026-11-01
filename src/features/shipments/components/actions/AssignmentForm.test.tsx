@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { createLoadedStore, renderWithStore } from '@/test/renderWithStore';
+import { createLoadedStore } from '@/test/loadedStore';
+import { renderWithStore } from '@/test/renderWithStore';
 import { selectShipmentById } from '../../store/selectors';
 import { AssignmentForm } from './AssignmentForm';
 
