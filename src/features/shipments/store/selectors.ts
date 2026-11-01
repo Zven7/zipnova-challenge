@@ -105,20 +105,21 @@ export const selectActiveFilterChips = createSelector(
   ],
 );
 
+// `todayKey` ("YYYY-MM-DD") en lugar de un Date, para que la memoización compare por valor.
+const selectShipmentArg = (state: RootState, shipmentId: string) =>
+  selectShipmentById(state, shipmentId);
+const selectTodayKey = (_state: RootState, _shipmentId: string, todayKey: string) => todayKey;
+
 /** Vehículos en tránsito con otro envío el mismo día: no se pueden asignar a `shipmentId`. */
 export const selectBusyVehicleIds = createSelector(
-  [
-    selectAllShipments,
-    (state: RootState, shipmentId: string) => selectShipmentById(state, shipmentId),
-  ],
-  (shipments, shipment) => (shipment ? getBusyVehicleIds(shipments, shipment) : []),
+  [selectAllShipments, selectShipmentArg, selectTodayKey],
+  (shipments, shipment, todayKey) =>
+    shipment ? getBusyVehicleIds(shipments, shipment, parseDateKey(todayKey)) : [],
 );
 
-/** Pares conductor–vehículo de los otros envíos del mismo día que `shipmentId`. */
+/** Pares conductor–vehículo de los otros envíos que operan el mismo día que `shipmentId`. */
 export const selectSameDayAssignments = createSelector(
-  [
-    selectAllShipments,
-    (state: RootState, shipmentId: string) => selectShipmentById(state, shipmentId),
-  ],
-  (shipments, shipment) => (shipment ? getSameDayAssignments(shipments, shipment) : []),
+  [selectAllShipments, selectShipmentArg, selectTodayKey],
+  (shipments, shipment, todayKey) =>
+    shipment ? getSameDayAssignments(shipments, shipment, parseDateKey(todayKey)) : [],
 );

@@ -39,15 +39,31 @@ export function canDispatch(shipment: Shipment, today: Date): boolean {
   return isoToDateKey(shipment.estimatedDelivery) <= toDateKey(today);
 }
 
-/** Vehículos en tránsito con otro envío el mismo día que `shipment`. Los otros días están libres. */
-export function getBusyVehicleIds(shipments: Shipment[], shipment: Shipment): string[] {
+const ACTIVE_STATUSES: ShipmentStatus[] = ['pending', 'assigned', 'in_transit'];
+
+/**
+ * Día en que el envío ocupa conductor y vehículo. Un envío activo atrasado opera hoy: si sigue en
+ * tránsito, el vehículo está en la calle hoy; si no salió, sale hoy. Los cerrados conservan su día.
+ */
+export function getOperationDay(shipment: Shipment, today: Date): string {
   const day = isoToDateKey(shipment.estimatedDelivery);
-  return shipments.flatMap(({ id, status, vehicleId, estimatedDelivery }) =>
-    id !== shipment.id &&
-    status === 'in_transit' &&
-    vehicleId !== undefined &&
-    isoToDateKey(estimatedDelivery) === day
-      ? [vehicleId]
+  const todayKey = toDateKey(today);
+  return ACTIVE_STATUSES.includes(shipment.status) && day < todayKey ? todayKey : day;
+}
+
+/** Vehículos en tránsito con otro envío el mismo día que `shipment`. Los otros días están libres. */
+export function getBusyVehicleIds(
+  shipments: Shipment[],
+  shipment: Shipment,
+  today: Date,
+): string[] {
+  const day = getOperationDay(shipment, today);
+  return shipments.flatMap((other) =>
+    other.id !== shipment.id &&
+    other.status === 'in_transit' &&
+    other.vehicleId !== undefined &&
+    getOperationDay(other, today) === day
+      ? [other.vehicleId]
       : [],
   );
 }
@@ -62,16 +78,20 @@ export type PairingConflict =
 // Pendientes y cancelados no comprometen a nadie; los entregados sí (el conductor ya salió con ese vehículo).
 const PAIRING_STATUSES: ShipmentStatus[] = ['assigned', 'in_transit', 'delivered'];
 
-/** Conductor y vehículo de los otros envíos con entrega el mismo día que `shipment`. */
-export function getSameDayAssignments(shipments: Shipment[], shipment: Shipment): Assignment[] {
-  const day = isoToDateKey(shipment.estimatedDelivery);
-  return shipments.flatMap(({ id, status, driverId, vehicleId, estimatedDelivery }) =>
-    id !== shipment.id &&
-    PAIRING_STATUSES.includes(status) &&
-    driverId !== undefined &&
-    vehicleId !== undefined &&
-    isoToDateKey(estimatedDelivery) === day
-      ? [{ driverId, vehicleId }]
+/** Conductor y vehículo de los otros envíos que operan el mismo día que `shipment`. */
+export function getSameDayAssignments(
+  shipments: Shipment[],
+  shipment: Shipment,
+  today: Date,
+): Assignment[] {
+  const day = getOperationDay(shipment, today);
+  return shipments.flatMap((other) =>
+    other.id !== shipment.id &&
+    PAIRING_STATUSES.includes(other.status) &&
+    other.driverId !== undefined &&
+    other.vehicleId !== undefined &&
+    getOperationDay(other, today) === day
+      ? [{ driverId: other.driverId, vehicleId: other.vehicleId }]
       : [],
   );
 }

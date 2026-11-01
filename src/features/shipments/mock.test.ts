@@ -71,7 +71,7 @@ describe('mock de la operación', () => {
     for (const shipment of shipments) {
       const { driverId, vehicleId } = shipment;
       if (!driverId || !vehicleId) continue;
-      const sameDay = getSameDayAssignments(shipments, shipment);
+      const sameDay = getSameDayAssignments(shipments, shipment, today);
       expect(getPairingConflict({ driverId, vehicleId }, sameDay)).toBeUndefined();
     }
   });

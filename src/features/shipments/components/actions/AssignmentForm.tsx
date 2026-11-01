@@ -7,6 +7,7 @@ import { FormField } from '@/components/ui/FormField';
 import { Select } from '@/components/ui/Select';
 import { selectAllDrivers } from '@/features/drivers/store/selectors';
 import { selectAllVehicles } from '@/features/vehicles/store/selectors';
+import { toDateKey } from '@/lib/date';
 import { describePairingConflict, getDayVehicleId, isDriverOnRoute } from '../../rules';
 import { createAssignmentSchema, type AssignmentValues } from '../../schemas';
 import { selectBusyVehicleIds, selectSameDayAssignments } from '../../store/selectors';
@@ -24,9 +25,12 @@ export function AssignmentForm({ shipment, onDone }: AssignmentFormProps) {
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
   const vehicles = useAppSelector(selectAllVehicles);
-  const busyVehicleIds = useAppSelector((state) => selectBusyVehicleIds(state, shipment.id));
+  const todayKey = toDateKey(new Date());
+  const busyVehicleIds = useAppSelector((state) =>
+    selectBusyVehicleIds(state, shipment.id, todayKey),
+  );
   const sameDayAssignments = useAppSelector((state) =>
-    selectSameDayAssignments(state, shipment.id),
+    selectSameDayAssignments(state, shipment.id, todayKey),
   );
   const schema = useMemo(
     () =>

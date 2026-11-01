@@ -87,6 +87,21 @@ describe('assignShipment', () => {
     expect(action.payload).toBe(DRIVER_ON_ROUTE_MESSAGE);
   });
 
+  it('pasada la medianoche, un envío que sigue en tránsito ocupa conductor y vehículo', async () => {
+    const store = loadedStore();
+    // 123542 (drv-1, veh-1) era de ayer y sigue en tránsito; 123467 ahora es de hoy.
+    vi.setSystemTime(new Date(2026, 10, 1, 0, 3));
+    const sameDriver = await run(
+      store.dispatch(assignShipment({ id: '123467', driverId: 'drv-1', vehicleId: 'veh-1' })),
+    );
+    const sameVehicle = await run(
+      store.dispatch(assignShipment({ id: '123467', driverId: 'drv-4', vehicleId: 'veh-1' })),
+    );
+
+    expect(sameDriver.payload).toBe(DRIVER_ON_ROUTE_MESSAGE);
+    expect(sameVehicle.payload).toBe(VEHICLE_BUSY_MESSAGE);
+  });
+
   it('un vehículo en tránsito hoy se puede asignar para otro día', async () => {
     const store = loadedStore();
     // 123467 es de mañana; veh-1 está en tránsito hoy.

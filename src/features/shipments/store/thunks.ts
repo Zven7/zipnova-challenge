@@ -73,8 +73,9 @@ export const assignShipment = createAppAsyncThunk(
       return rejectWithValue('Este envío ya no se puede asignar.');
     }
     const shipments = getShipments(state);
-    const busyVehicleIds = getBusyVehicleIds(shipments, shipment);
-    const sameDay = getSameDayAssignments(shipments, shipment);
+    const today = new Date();
+    const busyVehicleIds = getBusyVehicleIds(shipments, shipment, today);
+    const sameDay = getSameDayAssignments(shipments, shipment, today);
     if (isDriverOnRoute(driverId, sameDay, busyVehicleIds)) {
       return rejectWithValue(DRIVER_ON_ROUTE_MESSAGE);
     }
@@ -106,13 +107,14 @@ export const changeShipmentStatus = createAppAsyncThunk(
     if (!shipment || status === 'cancelled' || !canTransition(shipment.status, status)) {
       return rejectWithValue('Ese cambio de estado no está permitido.');
     }
-    if (status === 'in_transit' && !canDispatch(shipment, new Date())) {
+    const today = new Date();
+    if (status === 'in_transit' && !canDispatch(shipment, today)) {
       return rejectWithValue(DISPATCH_TOO_EARLY_MESSAGE);
     }
     if (
       status === 'in_transit' &&
       shipment.vehicleId !== undefined &&
-      getBusyVehicleIds(getShipments(state), shipment).includes(shipment.vehicleId)
+      getBusyVehicleIds(getShipments(state), shipment, today).includes(shipment.vehicleId)
     ) {
       return rejectWithValue(`${VEHICLE_BUSY_MESSAGE} Reasigna otro vehículo antes de despachar.`);
     }

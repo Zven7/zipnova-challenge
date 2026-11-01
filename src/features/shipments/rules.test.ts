@@ -8,6 +8,7 @@ import {
   getBusyVehicleIds,
   getDayVehicleId,
   getNextStatus,
+  getOperationDay,
   getPairingConflict,
   getSameDayAssignments,
   isDriverOnRoute,
@@ -67,6 +68,7 @@ describe('canDispatch', () => {
 
 describe('getBusyVehicleIds', () => {
   const on = (date: number) => new Date(2026, 9, date, 12).toISOString();
+  const today = (date: number) => new Date(2026, 9, date, 8);
   const target = buildShipment({ id: 'target', estimatedDelivery: on(31) });
   const inTransit = buildShipment({
     id: '1',
@@ -84,11 +86,42 @@ describe('getBusyVehicleIds', () => {
   ];
 
   it('devuelve solo vehículos en tránsito el mismo día', () => {
-    expect(getBusyVehicleIds(shipments, target)).toEqual(['veh-1', 'veh-3']);
+    expect(getBusyVehicleIds(shipments, target, today(30))).toEqual(['veh-1', 'veh-3']);
   });
 
   it('no cuenta el propio envío', () => {
-    expect(getBusyVehicleIds(shipments, inTransit)).toEqual(['veh-3']);
+    expect(getBusyVehicleIds(shipments, inTransit, today(30))).toEqual(['veh-3']);
+  });
+
+  it('un envío que sigue en tránsito desde un día anterior ocupa el vehículo hoy', () => {
+    // Hoy es el 31: el envío 5 (del 30) sigue en la calle.
+    expect(getBusyVehicleIds(shipments, target, today(31))).toEqual(['veh-1', 'veh-3', 'veh-5']);
+  });
+
+  it('el atraso no ocupa el vehículo en días futuros', () => {
+    const tomorrow = buildShipment({ id: 'tomorrow', estimatedDelivery: on(32) });
+    expect(getBusyVehicleIds([...shipments, tomorrow], tomorrow, today(31))).toEqual([]);
+  });
+});
+
+describe('getOperationDay', () => {
+  const today = new Date(2026, 9, 31, 8);
+  const yesterday = new Date(2026, 9, 30, 12).toISOString();
+
+  it('un envío activo atrasado opera hoy', () => {
+    for (const status of ['pending', 'assigned', 'in_transit'] as const) {
+      expect(getOperationDay(buildShipment({ status, estimatedDelivery: yesterday }), today)).toBe(
+        '2026-10-31',
+      );
+    }
+  });
+
+  it('entregados y cancelados conservan su día', () => {
+    for (const status of ['delivered', 'cancelled'] as const) {
+      expect(getOperationDay(buildShipment({ status, estimatedDelivery: yesterday }), today)).toBe(
+        '2026-10-30',
+      );
+    }
   });
 });
 
@@ -139,7 +172,8 @@ describe('emparejamiento conductor–vehículo por día', () => {
       estimatedDelivery: day(30),
     }),
   ];
-  const sameDay = getSameDayAssignments(shipments, target);
+  // Hoy es el 30: el envío 4 es de hoy, no está atrasado respecto del 31.
+  const sameDay = getSameDayAssignments(shipments, target, new Date(2026, 9, 30, 8));
 
   it('toma los otros envíos del mismo día que comprometen conductor y vehículo', () => {
     expect(sameDay).toEqual([
