@@ -70,8 +70,8 @@ src/
 
 **Validaciones.** Las reglas de negocio son funciones puras (`rules.ts`) que usan tanto los esquemas Zod del formulario como los thunks. Los thunks vuelven a validar contra el estado actual, como lo haría un backend.
 
-- Asignar exige conductor y vehículo. Un vehículo en tránsito no recibe envíos nuevos, y en un mismo día cada conductor usa un solo vehículo.
-- Flujo de estados: `pending → assigned → in_transit → delivered`. Se puede cancelar desde cualquier estado excepto `delivered`.
+- Asignar exige conductor y vehículo. En un mismo día cada conductor usa un solo vehículo. Mientras un vehículo está en tránsito, ese día no recibe envíos nuevos ni su conductor tampoco; los otros días está libre.
+- Flujo de estados: `pending → assigned → in_transit → delivered`. Un envío pasa a en tránsito recién el día de su entrega. Se puede cancelar desde cualquier estado excepto `delivered`.
 
 **Mapa.** Leaflet con tiles que no requieren API key: Esri World Dark Gray para el estilo Simple y OpenStreetMap para el Detallado. El mapa y los formularios se cargan en diferido; si la descarga falla, un error boundary ofrece reintentar y la lista sigue funcionando.
 
@@ -87,11 +87,11 @@ src/
 - **Colores de estado** para marcadores y badges, que el kit no define.
 - **Interfaz en español**, incluidos los textos que el kit tiene en inglés.
 - **Reasignación** solo antes de que el envío salga (`pending` o `assigned`).
-- **Lista ordenada** por entrega estimada.
+- **Lista ordenada** con los envíos activos primero y los entregados o cancelados al final; dentro de cada grupo, por entrega estimada.
 
 ## CI/CD
 
-GitHub Actions corre formato, lint, typecheck, tests y build en cada push y pull request. En `main`, si todo pasa, publica el build en GitHub Pages. Para activarlo: **Settings → Pages → Source: GitHub Actions**.
+GitHub Actions corre formato, lint, typecheck, tests y build en cada push y pull request. El deploy lo hace Vercel, y su comando de build (`vercel.json`) vuelve a correr los mismos checks, así que un deploy no sale si algo falla. `vercel.json` también define las cabeceras de seguridad (CSP, `frame-ancestors`, `Referrer-Policy`) y la caché inmutable de los assets con hash.
 
 ## Próximos pasos
 

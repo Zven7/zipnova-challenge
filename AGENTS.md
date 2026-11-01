@@ -153,8 +153,8 @@ Mock: **20 envíos, 5 conductores, 5 vehículos**. Condiciones:
 
 **Acciones sobre envíos** (formulario con React Hook Form + Zod)
 
-- Asignar o reasignar conductor y vehículo (ambos requeridos al asignar; no permitir asignar un vehículo ya usado en otro envío `in_transit`).
-- Cambiar el estado respetando transiciones válidas: `pending → assigned → in_transit → delivered`; `cancelled` desde cualquier estado excepto `delivered`.
+- Asignar o reasignar conductor y vehículo (ambos requeridos al asignar; no permitir asignar un vehículo que ese día está en tránsito con otro envío).
+- Cambiar el estado respetando transiciones válidas: `pending → assigned → in_transit → delivered`; `cancelled` desde cualquier estado excepto `delivered`. Un envío pasa a `in_transit` recién el día de su entrega.
 - Cancelar con confirmación (y motivo opcional).
 - Mensajes de error por campo y feedback de éxito (toast simple).
 
@@ -173,7 +173,7 @@ Mock: **20 envíos, 5 conductores, 5 vehículos**. Condiciones:
 - Tests con Vitest: funciones puras de `lib/`, reglas y selectores, más tests de componentes con Testing Library para los flujos de teclado y los formularios. No hace falta testear cada componente.
 - Sin `console.log` ni código comentado en la entrega.
 - Commits chicos y con mensajes claros (conventional commits).
-- La CI (GitHub Actions) corre formato, lint, typecheck, tests y build en cada push y PR; el deploy solo sale si todo pasa.
+- La CI (GitHub Actions) corre formato, lint, typecheck, tests y build en cada push y PR. El deploy es en Vercel y su build corre los mismos checks, así que solo sale si todo pasa.
 
 ## 9. Entregables
 
