@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   canAssign,
   canCancel,
+  canDispatch,
   canTransition,
   describePairingConflict,
   getBusyVehicleIds,
@@ -9,6 +10,7 @@ import {
   getNextStatus,
   getPairingConflict,
   getSameDayAssignments,
+  isDriverOnRoute,
 } from './rules';
 import { buildShipment } from './testing';
 import { SHIPMENT_STATUSES } from './types';
@@ -48,20 +50,58 @@ describe('canCancel y canAssign', () => {
   });
 });
 
-describe('getBusyVehicleIds', () => {
-  const shipments = [
-    buildShipment({ id: '1', status: 'in_transit', vehicleId: 'veh-1' }),
-    buildShipment({ id: '2', status: 'assigned', vehicleId: 'veh-2' }),
-    buildShipment({ id: '3', status: 'in_transit', vehicleId: 'veh-3' }),
-    buildShipment({ id: '4', status: 'delivered', vehicleId: 'veh-4' }),
-  ];
+describe('canDispatch', () => {
+  const today = new Date(2026, 9, 31, 8, 0);
+  const deliveringOn = (date: number) =>
+    buildShipment({ estimatedDelivery: new Date(2026, 9, date, 18).toISOString() });
 
-  it('devuelve solo vehículos de envíos en tránsito', () => {
-    expect(getBusyVehicleIds(shipments)).toEqual(['veh-1', 'veh-3']);
+  it('despacha el día de la entrega o si está atrasado', () => {
+    expect(canDispatch(deliveringOn(31), today)).toBe(true);
+    expect(canDispatch(deliveringOn(30), today)).toBe(true);
   });
 
-  it('excluye el envío que se está editando', () => {
-    expect(getBusyVehicleIds(shipments, '1')).toEqual(['veh-3']);
+  it('no despacha envíos de días futuros', () => {
+    expect(canDispatch(deliveringOn(32), today)).toBe(false);
+  });
+});
+
+describe('getBusyVehicleIds', () => {
+  const on = (date: number) => new Date(2026, 9, date, 12).toISOString();
+  const target = buildShipment({ id: 'target', estimatedDelivery: on(31) });
+  const inTransit = buildShipment({
+    id: '1',
+    status: 'in_transit',
+    vehicleId: 'veh-1',
+    estimatedDelivery: on(31),
+  });
+  const shipments = [
+    target,
+    inTransit,
+    buildShipment({ id: '2', status: 'assigned', vehicleId: 'veh-2', estimatedDelivery: on(31) }),
+    buildShipment({ id: '3', status: 'in_transit', vehicleId: 'veh-3', estimatedDelivery: on(31) }),
+    buildShipment({ id: '4', status: 'delivered', vehicleId: 'veh-4', estimatedDelivery: on(31) }),
+    buildShipment({ id: '5', status: 'in_transit', vehicleId: 'veh-5', estimatedDelivery: on(30) }),
+  ];
+
+  it('devuelve solo vehículos en tránsito el mismo día', () => {
+    expect(getBusyVehicleIds(shipments, target)).toEqual(['veh-1', 'veh-3']);
+  });
+
+  it('no cuenta el propio envío', () => {
+    expect(getBusyVehicleIds(shipments, inTransit)).toEqual(['veh-3']);
+  });
+});
+
+describe('isDriverOnRoute', () => {
+  const sameDay = [{ driverId: 'drv-1', vehicleId: 'veh-1' }];
+
+  it('el conductor cuyo vehículo del día está en tránsito no puede sumar envíos', () => {
+    expect(isDriverOnRoute('drv-1', sameDay, ['veh-1'])).toBe(true);
+  });
+
+  it('si el vehículo del día está libre, o no tiene envíos ese día, puede sumar', () => {
+    expect(isDriverOnRoute('drv-1', sameDay, [])).toBe(false);
+    expect(isDriverOnRoute('drv-2', sameDay, ['veh-1'])).toBe(false);
   });
 });
 

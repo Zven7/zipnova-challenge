@@ -7,7 +7,7 @@ import { FormField } from '@/components/ui/FormField';
 import { Select } from '@/components/ui/Select';
 import { selectAllDrivers } from '@/features/drivers/store/selectors';
 import { selectAllVehicles } from '@/features/vehicles/store/selectors';
-import { describePairingConflict, getDayVehicleId } from '../../rules';
+import { describePairingConflict, getDayVehicleId, isDriverOnRoute } from '../../rules';
 import { createAssignmentSchema, type AssignmentValues } from '../../schemas';
 import { selectBusyVehicleIds, selectSameDayAssignments } from '../../store/selectors';
 import { assignShipment } from '../../store/thunks';
@@ -76,10 +76,10 @@ export function AssignmentForm({ shipment, onDone }: AssignmentFormProps) {
           <Select
             {...control}
             {...register('driverId', {
-              // Si el conductor ya tiene envíos ese día, se propone el vehículo que usa.
+              // Si el conductor ya tiene envíos ese día, se propone el vehículo que usa (si está libre).
               onChange: (event: { target: { value: string } }) => {
                 const dayVehicleId = getDayVehicleId(event.target.value, sameDayAssignments);
-                if (dayVehicleId) {
+                if (dayVehicleId && !busyVehicleIds.includes(dayVehicleId)) {
                   setValue('vehicleId', dayVehicleId, { shouldValidate: isSubmitted });
                 }
               },
@@ -87,7 +87,11 @@ export function AssignmentForm({ shipment, onDone }: AssignmentFormProps) {
             placeholder="Elige un conductor"
             options={drivers.map((driver) => ({
               value: driver.id,
-              label: `${driver.name} · ${driver.phone}`,
+              label: `${driver.name} · ${driver.phone}${
+                isDriverOnRoute(driver.id, sameDayAssignments, busyVehicleIds)
+                  ? ' (ese día ya salió)'
+                  : ''
+              }`,
             }))}
           />
         )}
@@ -96,7 +100,7 @@ export function AssignmentForm({ shipment, onDone }: AssignmentFormProps) {
         id="assign-vehicle"
         label="Vehículo"
         error={errors.vehicleId?.message}
-        hint="Cada conductor usa un solo vehículo por día. Los vehículos en tránsito con otro envío no se pueden asignar."
+        hint="Cada conductor usa un solo vehículo por día. Un vehículo en tránsito ese día no se puede asignar hasta que vuelva."
       >
         {(control) => (
           <Select

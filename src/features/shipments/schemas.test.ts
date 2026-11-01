@@ -5,7 +5,7 @@ import {
   createStatusSchema,
   REASON_MAX_LENGTH,
 } from './schemas';
-import { VEHICLE_BUSY_MESSAGE } from './rules';
+import { DRIVER_ON_ROUTE_MESSAGE, VEHICLE_BUSY_MESSAGE } from './rules';
 
 const firstError = (result: { success: boolean; error?: { issues: { message: string }[] } }) =>
   result.error?.issues[0]?.message;
@@ -13,8 +13,17 @@ const firstError = (result: { success: boolean; error?: { issues: { message: str
 describe('createAssignmentSchema', () => {
   const schema = createAssignmentSchema({
     busyVehicleIds: ['veh-1'],
-    sameDayAssignments: [{ driverId: 'drv-3', vehicleId: 'veh-3' }],
+    sameDayAssignments: [
+      { driverId: 'drv-3', vehicleId: 'veh-3' },
+      { driverId: 'drv-5', vehicleId: 'veh-1' },
+    ],
     describeConflict: (conflict) => `conflicto ${conflict.kind}`,
+  });
+
+  it('rechaza, sobre el campo conductor, a quien ese día ya salió con su vehículo', () => {
+    const result = schema.safeParse({ driverId: 'drv-5', vehicleId: 'veh-2' });
+    expect(firstError(result)).toBe(DRIVER_ON_ROUTE_MESSAGE);
+    expect(result.error?.issues[0]?.path).toEqual(['driverId']);
   });
 
   it('exige conductor y vehículo', () => {

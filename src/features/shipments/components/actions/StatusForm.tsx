@@ -4,7 +4,7 @@ import { useAppDispatch } from '@/app/hooks';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/cn';
 import { STATUS_LABELS } from '../../constants';
-import { getNextStatus } from '../../rules';
+import { canDispatch, getNextStatus } from '../../rules';
 import { createStatusSchema, type StatusValues } from '../../schemas';
 import { changeShipmentStatus } from '../../store/thunks';
 import type { Shipment, ShipmentStatus } from '../../types';
@@ -38,6 +38,15 @@ export function StatusForm({ shipment, onDone }: StatusFormProps) {
       <p className="text-small font-light text-fg-soft">
         Para pasar a <strong className="font-semibold text-fg">Asignado</strong>, asigna un
         conductor y un vehículo en la pestaña Asignación.
+      </p>
+    );
+  }
+
+  if (next === 'in_transit' && !canDispatch(shipment, new Date())) {
+    return (
+      <p className="text-small font-light text-fg-soft">
+        Este envío pasa a <strong className="font-semibold text-fg">En tránsito</strong> el día de
+        su entrega. Todavía no se puede despachar.
       </p>
     );
   }

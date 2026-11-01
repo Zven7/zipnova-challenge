@@ -105,10 +105,13 @@ export const selectActiveFilterChips = createSelector(
   ],
 );
 
-/** Vehículos en tránsito con otro envío: no se pueden asignar a `shipmentId`. */
+/** Vehículos en tránsito con otro envío el mismo día: no se pueden asignar a `shipmentId`. */
 export const selectBusyVehicleIds = createSelector(
-  [selectAllShipments, (_state: RootState, shipmentId: string) => shipmentId],
-  getBusyVehicleIds,
+  [
+    selectAllShipments,
+    (state: RootState, shipmentId: string) => selectShipmentById(state, shipmentId),
+  ],
+  (shipments, shipment) => (shipment ? getBusyVehicleIds(shipments, shipment) : []),
 );
 
 /** Pares conductor–vehículo de los otros envíos del mismo día que `shipmentId`. */

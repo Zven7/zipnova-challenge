@@ -1,10 +1,13 @@
 import type { Driver } from '@/features/drivers/types';
 import type { Vehicle } from '@/features/vehicles/types';
-import { isoToDateKey } from '@/lib/date';
+import { isoToDateKey, toDateKey } from '@/lib/date';
 import type { Shipment, ShipmentStatus } from './types';
 
 // Lo usan el schema del formulario y los thunks; vive acá para que el store no dependa de Zod.
 export const VEHICLE_BUSY_MESSAGE = 'Ese vehículo está en tránsito con otro envío.';
+export const DRIVER_ON_ROUTE_MESSAGE =
+  'Ese día el conductor ya salió con su vehículo y no puede sumar envíos.';
+export const DISPATCH_TOO_EARLY_MESSAGE = 'Solo se puede despachar el día de la entrega.';
 
 /** Flujo lineal: pending → assigned → in_transit → delivered. */
 const NEXT_STATUS: Partial<Record<ShipmentStatus, ShipmentStatus>> = {
@@ -31,17 +34,22 @@ export function canAssign(status: ShipmentStatus): boolean {
   return status === 'pending' || status === 'assigned';
 }
 
-/** Vehículos ocupados por otro envío en tránsito. */
-export function getBusyVehicleIds(shipments: Shipment[], excludeShipmentId?: string): string[] {
-  return shipments
-    .filter(
-      (shipment) =>
-        shipment.id !== excludeShipmentId &&
-        shipment.status === 'in_transit' &&
-        shipment.vehicleId !== undefined,
-    )
-    .map((shipment) => shipment.vehicleId)
-    .filter((vehicleId): vehicleId is string => vehicleId !== undefined);
+/** Un envío sale a reparto el día de su entrega (o después, si está atrasado), nunca antes. */
+export function canDispatch(shipment: Shipment, today: Date): boolean {
+  return isoToDateKey(shipment.estimatedDelivery) <= toDateKey(today);
+}
+
+/** Vehículos en tránsito con otro envío el mismo día que `shipment`. Los otros días están libres. */
+export function getBusyVehicleIds(shipments: Shipment[], shipment: Shipment): string[] {
+  const day = isoToDateKey(shipment.estimatedDelivery);
+  return shipments.flatMap(({ id, status, vehicleId, estimatedDelivery }) =>
+    id !== shipment.id &&
+    status === 'in_transit' &&
+    vehicleId !== undefined &&
+    isoToDateKey(estimatedDelivery) === day
+      ? [vehicleId]
+      : [],
+  );
 }
 
 export type Assignment = { driverId: string; vehicleId: string };
@@ -87,6 +95,16 @@ export function getPairingConflict(
 /** Vehículo que el conductor ya usa ese día, si tiene otros envíos. */
 export function getDayVehicleId(driverId: string, sameDay: Assignment[]): string | undefined {
   return sameDay.find((other) => other.driverId === driverId)?.vehicleId;
+}
+
+/** El conductor ya salió ese día con su vehículo: no puede sumar envíos hasta volver. */
+export function isDriverOnRoute(
+  driverId: string,
+  sameDay: Assignment[],
+  busyVehicleIds: string[],
+): boolean {
+  const dayVehicleId = getDayVehicleId(driverId, sameDay);
+  return dayVehicleId !== undefined && busyVehicleIds.includes(dayVehicleId);
 }
 
 export function describePairingConflict(

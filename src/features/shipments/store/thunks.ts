@@ -10,11 +10,15 @@ import { createMockShipments } from '../mock';
 import {
   canAssign,
   canCancel,
+  canDispatch,
   canTransition,
   describePairingConflict,
+  DISPATCH_TOO_EARLY_MESSAGE,
+  DRIVER_ON_ROUTE_MESSAGE,
   getBusyVehicleIds,
   getPairingConflict,
   getSameDayAssignments,
+  isDriverOnRoute,
   VEHICLE_BUSY_MESSAGE,
 } from '../rules';
 import type { Shipment, ShipmentStatus } from '../types';
@@ -69,13 +73,15 @@ export const assignShipment = createAppAsyncThunk(
       return rejectWithValue('Este envío ya no se puede asignar.');
     }
     const shipments = getShipments(state);
-    if (getBusyVehicleIds(shipments, id).includes(vehicleId)) {
+    const busyVehicleIds = getBusyVehicleIds(shipments, shipment);
+    const sameDay = getSameDayAssignments(shipments, shipment);
+    if (isDriverOnRoute(driverId, sameDay, busyVehicleIds)) {
+      return rejectWithValue(DRIVER_ON_ROUTE_MESSAGE);
+    }
+    if (busyVehicleIds.includes(vehicleId)) {
       return rejectWithValue(VEHICLE_BUSY_MESSAGE);
     }
-    const conflict = getPairingConflict(
-      { driverId, vehicleId },
-      getSameDayAssignments(shipments, shipment),
-    );
+    const conflict = getPairingConflict({ driverId, vehicleId }, sameDay);
     if (conflict) {
       return rejectWithValue(
         describePairingConflict(
@@ -100,10 +106,13 @@ export const changeShipmentStatus = createAppAsyncThunk(
     if (!shipment || status === 'cancelled' || !canTransition(shipment.status, status)) {
       return rejectWithValue('Ese cambio de estado no está permitido.');
     }
+    if (status === 'in_transit' && !canDispatch(shipment, new Date())) {
+      return rejectWithValue(DISPATCH_TOO_EARLY_MESSAGE);
+    }
     if (
       status === 'in_transit' &&
       shipment.vehicleId !== undefined &&
-      getBusyVehicleIds(getShipments(state), id).includes(shipment.vehicleId)
+      getBusyVehicleIds(getShipments(state), shipment).includes(shipment.vehicleId)
     ) {
       return rejectWithValue(`${VEHICLE_BUSY_MESSAGE} Reasigna otro vehículo antes de despachar.`);
     }
