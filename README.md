@@ -70,12 +70,12 @@ src/
 
 **Validaciones.** Las reglas de negocio son funciones puras (`rules.ts`) que usan tanto los esquemas Zod del formulario como los thunks. Los thunks vuelven a validar contra el estado actual, como lo haría un backend.
 
-- Asignar exige conductor y vehículo. En un mismo día cada conductor usa un solo vehículo. Mientras un vehículo está en tránsito, ese día no recibe envíos nuevos ni su conductor tampoco; los otros días está libre.
+- Asignar exige conductor y vehículo. En un mismo día cada conductor usa un solo vehículo. Mientras un vehículo está en tránsito, ese día no recibe envíos nuevos ni su conductor tampoco; los otros días está libre. Un envío activo atrasado cuenta como de hoy: si sigue en tránsito, el vehículo sigue en la calle.
 - Flujo de estados: `pending → assigned → in_transit → delivered`. Un envío pasa a en tránsito recién el día de su entrega. Se puede cancelar desde cualquier estado excepto `delivered`.
 
 **Mapa.** Leaflet con tiles que no requieren API key: Esri World Dark Gray para el estilo Simple y OpenStreetMap para el Detallado. El mapa y los formularios se cargan en diferido; si la descarga falla, un error boundary ofrece reintentar y la lista sigue funcionando.
 
-**Accesibilidad.** La selección múltiple, el menú de filtros y el date picker siguen los patrones ARIA correspondientes (combobox, menú y grilla) y se manejan por completo con teclado. El modal usa `<dialog>` nativo.
+**Accesibilidad.** La selección múltiple, el menú de filtros, el date picker y los controles segmentados siguen los patrones ARIA correspondientes (combobox, menú, grilla y radiogroup) y se manejan por completo con teclado. El modal usa `<dialog>` nativo y devuelve el foco a quien lo abrió. Cuando desaparece el control enfocado (un chip quitado, un cambio de pestaña en mobile), el foco pasa a un destino lógico en lugar de perderse.
 
 **Tests.** Vitest cubre utilidades, reglas, esquemas, selectores, thunks y la coherencia del mock. Con Testing Library se prueban el teclado de la selección múltiple y del menú de filtros, el formulario de asignación y el panel con un store real.
 
