@@ -4,9 +4,15 @@ import { assignShipment, cancelShipment, changeShipmentStatus, fetchOperationDat
 
 export type LoadStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
 
+// Entregados y cancelados ya no requieren acción: van al final.
+const isClosed = ({ status }: Shipment) => status === 'delivered' || status === 'cancelled';
+
+/** Primero los envíos activos y después los cerrados; dentro de cada grupo, por entrega estimada. */
 export const shipmentsAdapter = createEntityAdapter<Shipment>({
   sortComparer: (a, b) =>
-    a.estimatedDelivery.localeCompare(b.estimatedDelivery) || a.id.localeCompare(b.id),
+    Number(isClosed(a)) - Number(isClosed(b)) ||
+    a.estimatedDelivery.localeCompare(b.estimatedDelivery) ||
+    a.id.localeCompare(b.id),
 });
 
 type ShipmentsState = ReturnType<typeof shipmentsAdapter.getInitialState> & {

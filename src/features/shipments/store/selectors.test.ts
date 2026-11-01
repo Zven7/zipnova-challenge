@@ -36,13 +36,19 @@ function loadedStore() {
 }
 
 describe('selectFilteredShipments', () => {
-  it('sin filtros devuelve todos los envíos ordenados por entrega estimada', () => {
+  it('sin filtros devuelve todos: primero los activos y después los cerrados, cada grupo por fecha', () => {
     const store = loadedStore();
     const visible = selectFilteredShipments(store.getState());
-    const dates = visible.map((shipment) => shipment.estimatedDelivery);
+    const isClosed = (status: string) => status === 'delivered' || status === 'cancelled';
+    const active = visible.filter((shipment) => !isClosed(shipment.status));
+    const closed = visible.filter((shipment) => isClosed(shipment.status));
+    const dates = (shipments: typeof visible) =>
+      shipments.map((shipment) => shipment.estimatedDelivery);
 
     expect(visible).toHaveLength(20);
-    expect(dates).toEqual([...dates].sort());
+    expect(visible).toEqual([...active, ...closed]);
+    expect(dates(active)).toEqual([...dates(active)].sort());
+    expect(dates(closed)).toEqual([...dates(closed)].sort());
   });
 
   it('aplica los filtros del estado de la vista', () => {
