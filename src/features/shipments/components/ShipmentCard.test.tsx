@@ -39,14 +39,28 @@ describe('ShipmentCard', () => {
     expect(toggle()).toHaveAttribute('aria-expanded', 'true');
   });
 
-  it('no cambia si el clic termina una selección de texto', async () => {
+  it('cada clic alterna, también en un doble clic sobre el mismo texto', async () => {
     const { user, toggle } = setup();
-    const getSelection = vi
-      .spyOn(window, 'getSelection')
-      .mockReturnValue({ toString: () => '0999' } as Selection);
+    const title = screen.getByRole('heading', { name: 'Entrega 123445' });
 
-    await user.click(screen.getByText('0999-2234908283'));
+    await user.dblClick(title);
     expect(toggle()).toHaveAttribute('aria-expanded', 'false');
-    getSelection.mockRestore();
+
+    await user.click(title);
+    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+    await user.click(title);
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('no cambia si se arrastra para seleccionar texto', async () => {
+    const { user, toggle } = setup();
+    const tracking = screen.getByText('0999-2234908283');
+
+    await user.pointer([
+      { keys: '[MouseLeft>]', target: tracking, coords: { clientX: 10, clientY: 10 } },
+      { target: tracking, coords: { clientX: 60, clientY: 10 } },
+      { keys: '[/MouseLeft]', target: tracking, coords: { clientX: 60, clientY: 10 } },
+    ]);
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
   });
 });

@@ -1,4 +1,4 @@
-import type { Ref } from 'react';
+import { useRef, type Ref } from 'react';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/iconData';
@@ -12,6 +12,9 @@ import {
 } from '../store/selectors';
 import { selectShipment, toggleExpanded } from '../store/shipmentsViewSlice';
 import { ShipmentStatusBadge } from './ShipmentStatusBadge';
+
+/** Más movimiento que esto entre presionar y soltar es arrastrar para seleccionar, no un clic. */
+const DRAG_THRESHOLD_PX = 4;
 
 type ShipmentCardProps = {
   id: string;
@@ -27,6 +30,7 @@ export function ShipmentCard({ id, onLocate, onOpenActions, ref }: ShipmentCardP
   const details = useAppSelector((state) => selectShipmentDetails(state, id));
   const expanded = useAppSelector((state) => selectIsExpanded(state, id));
   const selected = useAppSelector((state) => selectSelectedShipmentId(state) === id);
+  const pressPoint = useRef<{ x: number; y: number } | null>(null);
 
   if (!details) return null;
   const { shipment, metrics, driver, vehicle } = details;
@@ -57,11 +61,20 @@ export function ShipmentCard({ id, onLocate, onOpenActions, ref }: ShipmentCardP
     >
       {/* Atajo de mouse: la fila del título abre y cierra el detalle. Para teclado y lectores de
           pantalla el control es el botón de la flecha; los botones de la fila manejan su propio clic
-          y una selección de texto (por ejemplo, para copiar el seguimiento) no cuenta como clic. */}
+          y arrastrar para seleccionar texto (por ejemplo, para copiar el seguimiento) no cuenta. */}
       <div
+        onMouseDown={(event) => {
+          pressPoint.current = { x: event.clientX, y: event.clientY };
+          // El doble clic seleccionaría una palabra; cada clic alterna, como en el botón.
+          if (event.detail > 1) event.preventDefault();
+        }}
         onClick={(event) => {
           if (event.target instanceof Element && event.target.closest('button')) return;
-          if (window.getSelection()?.toString()) return;
+          const press = pressPoint.current;
+          const dragged =
+            press !== null &&
+            Math.hypot(event.clientX - press.x, event.clientY - press.y) > DRAG_THRESHOLD_PX;
+          if (dragged) return;
           dispatch(toggleExpanded(id));
         }}
         className="flex cursor-pointer items-center justify-between gap-4 p-3"

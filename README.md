@@ -84,7 +84,7 @@ src/
 - **Filtro de fecha de un día**, como el date picker del kit, sobre la entrega estimada.
 - **Modelo extendido** con número de seguimiento, valor declarado, paquetes y motivo de cancelación. El peso, el volumen y los bultos se calculan a partir de los paquetes.
 - **Detalle en la card expandida**: además de lo que muestra el kit, cliente, destino, entrega estimada, estado y prioridad, con los mismos tokens.
-- **Abrir el detalle**: además de la flecha, un clic en la fila del título abre y cierra la card (el kit no lo define). El cuerpo abierto no reacciona al clic y terminar una selección de texto no cuenta; para teclado y lectores de pantalla el control es la flecha.
+- **Abrir el detalle**: además de la flecha, un clic en la fila del título abre y cierra la card (el kit no lo define). El cuerpo abierto no reacciona al clic y arrastrar para seleccionar texto no cuenta; para teclado y lectores de pantalla el control es la flecha.
 - **Colores de estado** para marcadores y badges, que el kit no define.
 - **Interfaz en español**, incluidos los textos que el kit tiene en inglés.
 - **Reasignación** solo antes de que el envío salga (`pending` o `assigned`).
