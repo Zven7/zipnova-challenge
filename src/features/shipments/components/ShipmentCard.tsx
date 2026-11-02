@@ -129,8 +129,11 @@ export function ShipmentCard({ id, onLocate, onOpenActions, ref }: ShipmentCardP
             </dd>
             {shipment.cancellationReason && (
               <>
-                <dt className="text-fg-soft">Motivo</dt>
-                <dd className="text-fg">{shipment.cancellationReason}</dd>
+                <dt className="self-start text-fg-soft">Motivo</dt>
+                {/* Texto libre: una palabra larga sin espacios se corta en lugar de desbordar la card. */}
+                <dd className="min-w-0 text-fg wrap-anywhere whitespace-pre-line">
+                  {shipment.cancellationReason}
+                </dd>
               </>
             )}
           </dl>
