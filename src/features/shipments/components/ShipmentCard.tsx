@@ -55,7 +55,17 @@ export function ShipmentCard({ id, onLocate, onOpenActions, ref }: ShipmentCardP
         selected && 'outline-1 outline-primary',
       )}
     >
-      <div className="flex items-center justify-between gap-4 p-3">
+      {/* Atajo de mouse: la fila del título abre y cierra el detalle. Para teclado y lectores de
+          pantalla el control es el botón de la flecha; los botones de la fila manejan su propio clic
+          y una selección de texto (por ejemplo, para copiar el seguimiento) no cuenta como clic. */}
+      <div
+        onClick={(event) => {
+          if (event.target instanceof Element && event.target.closest('button')) return;
+          if (window.getSelection()?.toString()) return;
+          dispatch(toggleExpanded(id));
+        }}
+        className="flex cursor-pointer items-center justify-between gap-4 p-3"
+      >
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <h2 id={titleId} className="text-small font-semibold text-fg">
             Entrega {shipment.id}
