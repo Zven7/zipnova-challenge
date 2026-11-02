@@ -15,6 +15,15 @@
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-primary;
   }
+
+  /* Tailwind 4 deja los botones con el cursor por defecto; todo control habilitado lleva la mano. */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  select:not(:disabled),
+  input[type='checkbox']:not(:disabled),
+  input[type='radio']:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 /* Scrollbar del kit: barra de 4px, color #354551, radio 24px. */
